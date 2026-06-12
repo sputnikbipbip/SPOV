@@ -1,0 +1,6 @@
+@SPOV_Backend_HostAddress = http://localhost:5050
+
+GET {{SPOV_Backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

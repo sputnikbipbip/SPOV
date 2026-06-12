@@ -1,0 +1,7 @@
+﻿services:
+  spov_backend:
+    image: spov_backend
+    build:
+      context: .
+      dockerfile: SPOV_Backend/Dockerfile
+
