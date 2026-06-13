@@ -94,3 +94,6 @@ appsettings.Local.json
 
 # Custom ignore for study materials
 BUILD_ARTIFACTS.md
+
+# Junie memory files
+.junie/memory/
