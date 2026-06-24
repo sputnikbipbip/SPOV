@@ -8,12 +8,16 @@ using SPOV_Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
+builder.Services.AddProblemDetails();
+builder.Services.AddHealthChecks();
+
+builder.Services.Configure<ConnectionStringsOptions>(builder.Configuration.GetSection("ConnectionStrings"));
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=spov.db"));
 
 builder.Services.AddScoped<INewsRepository, NewsRepository>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
@@ -34,7 +38,6 @@ builder.Services.AddAuthorizationBuilder()
 
 var app = builder.Build();
 
-// Seed roles and ensure database is created
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -47,23 +50,31 @@ using (var scope = app.Services.CreateScope())
         await roleManager.CreateAsync(new IdentityRole(Roles.Partner));
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    // http://localhost:5050/openapi/v1.json
     app.MapOpenApi();
-    // http://localhost:5050/swagger/index.html
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "SPOV_Backend v1");
     });
-    // http://localhost:5050/scalar/v1
     app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
+app.UseExceptionHandler();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
+app.MapHealthChecks("/health");
 app.MapGroup("/api/auth").MapIdentityApi<ApplicationUser>();
 app.MapControllers();
 
 app.Run();
+
+public sealed class ConnectionStringsOptions
+{
+    public string DefaultConnection { get; set; } = "Data Source=spov.db";
+}
+
+public partial class Program;
