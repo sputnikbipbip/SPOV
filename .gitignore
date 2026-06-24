@@ -58,6 +58,8 @@ CanvasBuild/
 
 # Node.js
 node_modules/
+dist/
+.angular/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -94,3 +96,6 @@ appsettings.Local.json
 
 # Custom ignore for study materials
 BUILD_ARTIFACTS.md
+
+# Junie memory files
+.junie/memory/
