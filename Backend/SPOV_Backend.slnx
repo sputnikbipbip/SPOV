@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="compose.yaml" />
+  </Folder>
+  <Project Path="SPOV_Backend.Tests/SPOV_Backend.Tests.csproj" />
+  <Project Path="src/SPOV.Application/SPOV.Application.csproj" />
+  <Project Path="src/SPOV.Domain/SPOV.Domain.csproj" />
+  <Project Path="src/SPOV.Infrastructure/SPOV.Infrastructure.csproj" />
+  <Project Path="src/SPOV.WebApi/SPOV.WebApi.csproj" />
+</Solution>

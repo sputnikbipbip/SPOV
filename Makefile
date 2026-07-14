@@ -12,7 +12,7 @@ help:
 	@echo "  make docker-down       Stop Docker Compose services"
 
 backend-restore:
-	dotnet restore Backend/SPOV_Backend.sln
+	dotnet restore Backend/SPOV_Backend.slnx
 
 backend-run:
 	dotnet run --project Backend/src/SPOV.WebApi/SPOV.WebApi.csproj
