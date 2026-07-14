@@ -2,7 +2,7 @@
   api:
     build:
       context: ./Backend
-      dockerfile: SPOV_Backend/Dockerfile
+      dockerfile: src/SPOV.WebApi/Dockerfile
     env_file:
       - ./Backend/.env
     environment:
@@ -35,4 +35,3 @@
 
 volumes:
   api-data:
-

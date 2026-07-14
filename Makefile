@@ -15,7 +15,7 @@ backend-restore:
 	dotnet restore Backend/SPOV_Backend.sln
 
 backend-run:
-	dotnet run --project Backend/SPOV_Backend/SPOV_Backend.csproj
+	dotnet run --project Backend/src/SPOV.WebApi/SPOV.WebApi.csproj
 
 backend-test:
 	dotnet test Backend/SPOV_Backend.Tests/SPOV_Backend.Tests.csproj
