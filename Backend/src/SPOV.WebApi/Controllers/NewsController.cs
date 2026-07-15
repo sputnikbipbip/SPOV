@@ -18,23 +18,46 @@ public class NewsController : ControllerBase
         _newsService = newsService;
     }
 
-    [HttpGet(Name = "GetNews")]
-    public async Task<IActionResult> GetNews()
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
     {
-        var result = await _newsService.GetNewsAsync();
+        var result = await _newsService.GetAllAsync();
+        return result.ToActionResult();
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var result = await _newsService.GetByIdAsync(id);
         return result.ToActionResult();
     }
 
     [Authorize(Policy = "AdminOnly")]
-    [HttpPost(Name = "CreateNews")]
-    public async Task<IActionResult> CreateNews(CreateNewsRequest request)
+    [HttpPost]
+    public async Task<IActionResult> Create(CreateNewsRequest request)
     {
         var authorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await _newsService.CreateNewsAsync(request, authorId);
+        var result = await _newsService.CreateAsync(request, authorId);
 
         if (result.IsSuccess && result.Data is not null)
             return Created($"/api/news/{result.Data.Id}", result.Data);
 
+        return result.ToActionResult();
+    }
+
+    [Authorize(Policy = "AdminOnly")]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, CreateNewsRequest request)
+    {
+        var result = await _newsService.UpdateAsync(id, request);
+        return result.ToActionResult();
+    }
+
+    [Authorize(Policy = "AdminOnly")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var result = await _newsService.DeleteAsync(id);
         return result.ToActionResult();
     }
 }

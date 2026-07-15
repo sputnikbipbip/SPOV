@@ -10,6 +10,7 @@ public class NewsPostConfiguration : IEntityTypeConfiguration<NewsPost>
     {
         builder.HasKey(n => n.Id);
         builder.Property(n => n.Title).IsRequired().HasMaxLength(500);
-        builder.Property(n => n.Content).IsRequired();
+        builder.Property(n => n.Body).IsRequired();
+        builder.Property(n => n.PublishedAt).IsRequired();
     }
 }

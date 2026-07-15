@@ -5,6 +5,9 @@ namespace SPOV.Application.Services;
 
 public interface INewsService
 {
-    Task<Result<List<NewsPostDto>>> GetNewsAsync();
-    Task<Result<NewsPostDto>> CreateNewsAsync(CreateNewsRequest request, string? authorId);
+    Task<Result<List<NewsPostDto>>> GetAllAsync();
+    Task<Result<NewsPostDto?>> GetByIdAsync(int id);
+    Task<Result<NewsPostDto>> CreateAsync(CreateNewsRequest request, string? authorId);
+    Task<Result<NewsPostDto>> UpdateAsync(int id, CreateNewsRequest request);
+    Task<Result> DeleteAsync(int id);
 }

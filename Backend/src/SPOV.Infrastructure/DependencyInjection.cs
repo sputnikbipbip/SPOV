@@ -20,9 +20,15 @@ public static class DependencyInjection
             options.UseSqlite(configuration.GetConnectionString("DefaultConnection")
                 ?? "Data Source=spov.db"));
 
+        services.AddScoped<IPartnerRepository, PartnerRepository>();
+        services.AddScoped<IMembershipTierRepository, MembershipTierRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IEventRepository, EventRepository>();
+        services.AddScoped<IEventRegistrationRepository, EventRegistrationRepository>();
         services.AddScoped<INewsRepository, NewsRepository>();
+        services.AddScoped<IArticleRepository, ArticleRepository>();
+        services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<IDocumentRepository, DocumentRepository>();
-        services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 
         services.AddScoped<IFileStorageService>(_ =>
             new FileStorageService(contentRootPath));
