@@ -18,8 +18,8 @@ export const routes: Routes = [
   { path: 'eventos/:id', component: EventComponent, title: 'Evento - SPOV' },
   { path: 'contactos', component: ContactsComponent, title: 'Contactos - SPOV' },
   { path: 'obrigado', component: ThankYouComponent, title: 'Pedido enviado - SPOV' },
-  { path: 'privacidade', component: LegalComponent, data: { eyebrow: 'Privacidade', title: 'Privacidade com uma base clara e institucional.', text: 'A SPOV deve recolher apenas o essencial, com transparência e consentimento claro.' } },
-  { path: 'cookies', component: LegalComponent, data: { eyebrow: 'Cookies', title: 'Uso de cookies explicado de forma simples.', text: 'A informação deve ser curta, acessível e coerente com o restante website.' } },
-  { path: 'acessibilidade', component: LegalComponent, data: { eyebrow: 'Acessibilidade', title: 'Compromisso com um website claro e utilizável.', text: 'Contraste, foco visível, estrutura consistente e respeito por reduced motion desde o MVP.' } },
+  { path: 'privacidade', component: LegalComponent, title: 'Privacidade - SPOV', data: { eyebrow: 'Privacidade', title: 'Privacidade com uma base clara e institucional.', text: 'A SPOV recolhe apenas o essencial, com transparência e consentimento claro.' } },
+  { path: 'cookies', component: LegalComponent, title: 'Cookies - SPOV', data: { eyebrow: 'Cookies', title: 'Uso de cookies explicado de forma simples.', text: 'A SPOV utiliza apenas cookies técnicos e essenciais ao funcionamento do website.' } },
+  { path: 'acessibilidade', component: LegalComponent, title: 'Acessibilidade - SPOV', data: { eyebrow: 'Acessibilidade', title: 'Compromisso com um website acessível e utilizável.', text: 'A SPOV está empenhada em tornar o seu website acessível a todos os utilizadores.' } },
   { path: '**', redirectTo: '' }
 ];

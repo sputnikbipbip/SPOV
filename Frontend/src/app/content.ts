@@ -19,12 +19,6 @@ export const benefits = [
   { title: 'Condições especiais', text: 'Benefícios progressivos em inscrições, iniciativas e parcerias selecionadas.', badge: '20% AEVPORT' }
 ];
 
-export const futureAreas = [
-  { title: 'Área de notícias', text: 'Publicações curtas para novidades, eventos e comunicação institucional.' },
-  { title: 'Documentos partilhados', text: 'Espaço futuro para materiais técnicos e documentos reservados a parceiros.' },
-  { title: 'Gestão de sócios', text: 'Integração progressiva com autenticação, perfis e estado de subscrição.' }
-];
-
 export const membershipFaq = [
   ['Quem pode pedir informação?', 'Profissionais, estudantes, investigadores e parceiros com interesse em oncologia veterinária.'],
   ['A adesão é imediata?', 'O formulário serve como primeiro contacto para validação e acompanhamento pela SPOV.'],
