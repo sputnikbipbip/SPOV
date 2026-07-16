@@ -1,6 +1,7 @@
 using AutoMapper;
 using SPOV.Application.DTOs.AdminUsers;
 using SPOV.Application.DTOs.Articles;
+using SPOV.Application.DTOs.Contacts;
 using SPOV.Application.DTOs.Documents;
 using SPOV.Application.DTOs.EventRegistrations;
 using SPOV.Application.DTOs.Events;
@@ -29,5 +30,6 @@ public class MappingProfile : Profile
         CreateMap<Article, ArticleDto>();
         CreateMap<AdminUser, AdminUserDto>()
             .ForMember(d => d.Role, o => o.MapFrom(s => s.Role.ToString()));
+        CreateMap<ContactMessage, ContactMessageDto>();
     }
 }

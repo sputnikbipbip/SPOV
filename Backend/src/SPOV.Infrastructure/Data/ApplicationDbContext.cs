@@ -21,6 +21,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
     public DbSet<SharedDocument> SharedDocuments => Set<SharedDocument>();
+    public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

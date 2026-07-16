@@ -47,7 +47,6 @@ export class TextareaFieldComponent {
   selector: 'app-form-notes',
   standalone: true,
   template: `
-    <p class="prototype-note">Protótipo funcional: o formulário valida campos no cliente e mantém o envio externo configurado no website original.</p>
     <p class="form-privacy-note">Ao enviar, aceita ser contactado no âmbito do pedido submetido.</p>
   `
 })

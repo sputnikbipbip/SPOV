@@ -15,7 +15,7 @@ export const routes: Routes = [
   { path: 'governacao', component: GovernanceComponent, title: 'Governação - SPOV' },
   { path: 'socios', component: MembershipComponent, title: 'Sócios - SPOV' },
   { path: 'eventos', component: EventsComponent, title: 'Eventos - SPOV' },
-  { path: 'eventos/congresso-spov-2025', component: EventComponent, title: 'Congresso SPOV 2025' },
+  { path: 'eventos/:id', component: EventComponent, title: 'Evento - SPOV' },
   { path: 'contactos', component: ContactsComponent, title: 'Contactos - SPOV' },
   { path: 'obrigado', component: ThankYouComponent, title: 'Pedido enviado - SPOV' },
   { path: 'privacidade', component: LegalComponent, data: { eyebrow: 'Privacidade', title: 'Privacidade com uma base clara e institucional.', text: 'A SPOV deve recolher apenas o essencial, com transparência e consentimento claro.' } },

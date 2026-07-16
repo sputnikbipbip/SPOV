@@ -24,6 +24,13 @@ public class EventsController : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var result = await _eventService.GetByIdAsync(id);
+        return result.ToActionResult();
+    }
+
     [Authorize(Policy = "AdminOnly")]
     [HttpPost]
     public async Task<IActionResult> Create(CreateEventRequest request)

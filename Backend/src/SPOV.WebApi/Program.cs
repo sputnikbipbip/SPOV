@@ -12,6 +12,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddHealthChecks();
 
 builder.Services.AddApplication();
@@ -55,6 +65,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+app.UseCors();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapHealthChecks("/health");
 app.MapGroup("/api/auth").MapIdentityApi<ApplicationUser>();

@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IArticleRepository, ArticleRepository>();
         services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<IDocumentRepository, DocumentRepository>();
+        services.AddScoped<IContactRepository, ContactRepository>();
 
         services.AddScoped<IFileStorageService>(_ =>
             new FileStorageService(contentRootPath));

@@ -709,16 +709,6 @@ svg {
   gap: 1rem;
 }
 
-.prototype-note {
-  margin: 0;
-  padding: 0.9rem 1rem;
-  border-radius: 16px;
-  background: rgba(185, 216, 106, 0.2);
-  color: var(--spov-ink);
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
 .field-error {
   margin: 0;
   color: #b42318;
@@ -733,6 +723,23 @@ svg {
   background: rgba(15, 143, 151, 0.12);
   color: var(--spov-teal-deep);
   font-weight: 700;
+}
+
+.form-error-banner {
+  margin: 0 0 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: rgba(180, 35, 24, 0.1);
+  color: #b42318;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--spov-stone);
+  font-size: 1.1rem;
 }
 
 .form-privacy-note {
