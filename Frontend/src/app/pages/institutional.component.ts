@@ -135,7 +135,7 @@ export class HistoryComponent { protected readonly posterUrl = posterUrl; }
       <p>A direção da SPOV é composta por profissionais com vasta experiência na área da oncologia veterinária, garantindo a qualidade científica e a gestão rigorosa da associação.</p>
     </div>
     <div>
-      <img class="section-image" [src]="posterUrl" alt="Identidade SPOV" loading="lazy" decoding="async">
+      <img class="section-image" src="assets/images/joaquim_henriques.png" alt="Identidade SPOV" loading="lazy" decoding="async">
     </div>
   </div>
 </app-page-intro>

@@ -17,8 +17,8 @@ public static class DependencyInjection
         string contentRootPath)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlite(configuration.GetConnectionString("DefaultConnection")
-                ?? "Data Source=spov.db"));
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
 
         services.AddScoped<IPartnerRepository, PartnerRepository>();
         services.AddScoped<IMembershipTierRepository, MembershipTierRepository>();
@@ -33,6 +33,8 @@ public static class DependencyInjection
 
         services.AddScoped<IFileStorageService>(_ =>
             new FileStorageService(contentRootPath));
+
+        services.AddScoped<IIdentityService, IdentityService>();
 
         return services;
     }

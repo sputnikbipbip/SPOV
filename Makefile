@@ -3,6 +3,7 @@
 help:
 	@echo "Available commands:"
 	@echo "  make backend-restore   Restore .NET dependencies"
+	@echo "  make backend-secrets   Initialize and set .NET User Secrets"
 	@echo "  make backend-run       Run the ASP.NET Core API"
 	@echo "  make backend-test      Run backend tests"
 	@echo "  make frontend-install  Install frontend dependencies"
@@ -13,6 +14,12 @@ help:
 
 backend-restore:
 	dotnet restore Backend/SPOV_Backend.slnx
+
+backend-secrets:
+	dotnet user-secrets init --project Backend/src/SPOV.WebApi/SPOV.WebApi.csproj
+	@echo "Setting default connection string for local development..."
+	dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=spov;Username=spov;Password=changeme" --project Backend/src/SPOV.WebApi/SPOV.WebApi.csproj
+	@echo "Done. Use 'dotnet user-secrets set' to update secrets."
 
 backend-run:
 	dotnet run --project Backend/src/SPOV.WebApi/SPOV.WebApi.csproj

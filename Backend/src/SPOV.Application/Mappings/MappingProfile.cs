@@ -22,6 +22,11 @@ public class MappingProfile : Profile
         CreateMap<Partner, PartnerDto>()
             .ForMember(d => d.MembershipStatus, o => o.MapFrom(s => s.MembershipStatus.ToString()))
             .ForMember(d => d.MembershipTierName, o => o.MapFrom(s => s.MembershipTier != null ? s.MembershipTier.Name : null));
+        CreateMap<Partner, PartnerProfileDto>()
+            .ForMember(d => d.MembershipStatus, o => o.MapFrom(s => s.MembershipStatus.ToString()))
+            .ForMember(d => d.MembershipTierName, o => o.MapFrom(s => s.MembershipTier != null ? s.MembershipTier.Name : null))
+            .ForMember(d => d.PartnerType, o => o.MapFrom(s => s.PartnerType.ToString()))
+            .ForMember(d => d.Payments, o => o.Ignore());
         CreateMap<MembershipTier, MembershipTierDto>()
             .ForMember(d => d.BillingInterval, o => o.MapFrom(s => s.BillingInterval.ToString()));
         CreateMap<Payment, PaymentDto>();

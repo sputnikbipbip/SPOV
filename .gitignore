@@ -86,6 +86,7 @@ ehthumbs.db
 Thumbs.db
 
 # User-specific appsettings (keep the main ones, ignore the secrets)
+appsettings.json
 appsettings.Local.json
 *.user.json
 
@@ -93,6 +94,9 @@ appsettings.Local.json
 .env
 .env.*
 !.env.example
+
+# Docker secrets (plaintext passwords)
+docker/secrets/
 
 # Custom ignore for study materials
 BUILD_ARTIFACTS.md

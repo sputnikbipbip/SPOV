@@ -29,6 +29,11 @@ public class PartnerRepository : IPartnerRepository
         return await _db.Partners.Include(p => p.MembershipTier).FirstOrDefaultAsync(p => p.UserId == userId);
     }
 
+    public async Task<Partner?> GetByEmailAsync(string email)
+    {
+        return await _db.Partners.Include(p => p.MembershipTier).FirstOrDefaultAsync(p => p.Email == email);
+    }
+
     public async Task<Partner> AddAsync(Partner partner)
     {
         _db.Partners.Add(partner);

@@ -1,11 +1,10 @@
-using SPOV.Domain.Enums;
+using SPOV.Application.DTOs.Payments;
 
-namespace SPOV.Domain.Entities;
+namespace SPOV.Application.DTOs.Partners;
 
-public class Partner
+public class PartnerProfileDto
 {
     public int Id { get; set; }
-    public string UserId { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
@@ -25,10 +24,11 @@ public class Partner
     public decimal InitiationFee { get; set; }
     public decimal QuotaValue { get; set; }
     public decimal TotalAmount { get; set; }
-    public PartnerType PartnerType { get; set; }
-    public MembershipStatus MembershipStatus { get; set; } = MembershipStatus.Pending;
+    public string PartnerType { get; set; } = string.Empty;
+    public string MembershipStatus { get; set; } = string.Empty;
     public int? MembershipTierId { get; set; }
-    public MembershipTier? MembershipTier { get; set; }
-    public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+    public string? MembershipTierName { get; set; }
+    public DateTime JoinedAt { get; set; }
     public DateTime? MembershipExpiresAt { get; set; }
+    public List<PaymentDto> Payments { get; set; } = [];
 }

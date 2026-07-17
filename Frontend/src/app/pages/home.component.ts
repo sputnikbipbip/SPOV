@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -17,11 +17,8 @@ import { RouterLink } from '@angular/router';
             <a routerLink="/sobre" class="button button-secondary">Conhecer a SPOV</a>
           </div>
         </div>
-        <div class="hero-visual">
-          <div class="hero-card">
-            <img class="header-logo" src="assets/images/SPOV_Logo.png" alt="SPOV">
-            <p>Sociedade Portuguesa de<br>Oncologia Veterinária</p>
-          </div>
+        <div class="hero-visual" [style.opacity]="heroImageOpacity">
+          <img class="hero-animal-img" src="assets/images/hero-cat-dog.jpg" alt="Cão e gato">
         </div>
       </div>
     </section>
@@ -91,16 +88,57 @@ import { RouterLink } from '@angular/router';
       </div>
     </section>
 
-    <section class="section">
+    <section class="section sponsors">
       <div class="container">
         <div class="section-heading"><span class="eyebrow">Parceiros e patrocinadores</span><h2>Entidades que apoiam a SPOV.</h2></div>
-        <div class="partner-grid">
-          @for (name of partners; track name) { <div class="partner-card">{{ name }}</div> }
+        <div class="sponsors-carousel">
+          <div class="sponsors-track">
+            @for (item of duplicatedSponsors; track item.name) {
+              <a class="sponsor-item" [href]="item.url" target="_blank" rel="noopener noreferrer" [title]="item.name">
+                <span class="sponsor-name">{{ item.name }}</span>
+              </a>
+            }
+          </div>
+          <button type="button" class="sponsors-nav sponsors-prev" aria-label="Anterior" (click)="scrollCarousel(-1)">‹</button>
+          <button type="button" class="sponsors-nav sponsors-next" aria-label="Seguinte" (click)="scrollCarousel(1)">›</button>
         </div>
       </div>
     </section>
   `
 })
 export class HomeComponent {
-  protected readonly partners = ['Zoetis', 'Codivet', 'Farmodiética', 'Boehringer', 'DNAtech'];
+  protected heroImageOpacity = 1;
+
+  @HostListener('window:scroll')
+  onScroll() {
+    const hero = document.querySelector('.hero-section');
+    if (!hero) return;
+    const rect = hero.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    const progress = Math.max(0, Math.min(1, (windowHeight - rect.top) / windowHeight));
+    this.heroImageOpacity = Math.max(0, Math.min(1, (progress - 0.15) / 0.55));
+  }
+
+  protected readonly sponsors = [
+    { name: 'Zoetis', url: 'https://www.zoetis.com/' },
+    { name: 'Codivet', url: '' },
+    { name: 'Farmodiética', url: '' },
+    { name: 'Boehringer Ingelheim', url: 'https://www.boehringer-ingelheim.com/animal-health' },
+    { name: 'DNAtech', url: '' }
+  ];
+
+  protected readonly duplicatedSponsors = [...this.sponsors, ...this.sponsors, ...this.sponsors];
+
+  private carouselEl?: HTMLDivElement;
+  private scrollAmount = 0;
+
+  protected scrollCarousel(dir: number) {
+    if (!this.carouselEl) {
+      this.carouselEl = document.querySelector('.sponsors-track') as HTMLDivElement;
+    }
+    const step = 280;
+    this.scrollAmount += dir * step;
+    this.carouselEl.style.transition = 'transform 400ms ease';
+    this.carouselEl.style.transform = `translateX(${this.scrollAmount}px)`;
+  }
 }

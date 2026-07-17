@@ -1,4 +1,24 @@
-﻿services:
+﻿secrets:
+  postgres-password:
+    file: ./docker/secrets/postgres-password.txt
+
+services:
+  db:
+    image: postgres:17-alpine
+    secrets:
+      - postgres-password
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-spov}
+      POSTGRES_USER: ${POSTGRES_USER:-spov}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-spov} -d ${POSTGRES_DB:-spov}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: ./Backend
@@ -8,11 +28,11 @@
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://0.0.0.0:8080
-      ConnectionStrings__DefaultConnection: Data Source=/app/data/spov.db
     ports:
       - "8080:8080"
-    volumes:
-      - api-data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
       interval: 20s
@@ -29,4 +49,4 @@
       - api
 
 volumes:
-  api-data:
+  pg-data:

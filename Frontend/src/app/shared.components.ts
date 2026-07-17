@@ -54,7 +54,6 @@ export class PageIntroComponent {
       <div class="container header-inner">
         <a routerLink="/" class="brand-group" aria-label="Página inicial SPOV">
           <img class="header-logo" src="assets/images/SPOV_Logo.png" alt="SPOV">
-          <span class="brand-text">Sociedade Portuguesa de Oncologia Veterinária</span>
         </a>
         <button type="button" class="menu-toggle" [attr.aria-expanded]="menuOpen" (click)="menuOpen = !menuOpen">Menu</button>
         <nav class="site-nav" [class.open]="menuOpen" aria-label="Navegação principal">

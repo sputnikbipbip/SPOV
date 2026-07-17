@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home.component';
 import { AboutComponent, GovernanceComponent, HistoryComponent } from './pages/institutional.component';
 import { MembershipComponent } from './pages/membership.component';
+import { PartnerRegistrationComponent } from './pages/partner-registration.component';
+import { PartnerProfileComponent } from './pages/partner-profile.component';
 import { EventsComponent } from './pages/events.component';
 import { EventComponent } from './pages/event.component';
 import { ContactsComponent } from './pages/contacts.component';
@@ -14,6 +16,8 @@ export const routes: Routes = [
   { path: 'historia', component: HistoryComponent, title: 'História - SPOV' },
   { path: 'governacao', component: GovernanceComponent, title: 'Governação - SPOV' },
   { path: 'socios', component: MembershipComponent, title: 'Sócios - SPOV' },
+  { path: 'socios/aderir', component: PartnerRegistrationComponent, title: 'Aderir à SPOV - Sócios' },
+  { path: 'socios/perfil', component: PartnerProfileComponent, title: 'O meu perfil - Sócios' },
   { path: 'eventos', component: EventsComponent, title: 'Eventos - SPOV' },
   { path: 'eventos/:id', component: EventComponent, title: 'Evento - SPOV' },
   { path: 'contactos', component: ContactsComponent, title: 'Contactos - SPOV' },
