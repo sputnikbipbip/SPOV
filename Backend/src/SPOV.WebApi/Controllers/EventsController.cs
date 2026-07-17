@@ -42,4 +42,20 @@ public class EventsController : ControllerBase
 
         return result.ToActionResult();
     }
+
+    [Authorize(Policy = "AdminOnly")]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, UpdateEventRequest request)
+    {
+        var result = await _eventService.UpdateAsync(id, request);
+        return result.ToActionResult();
+    }
+
+    [Authorize(Policy = "AdminOnly")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var result = await _eventService.DeleteAsync(id);
+        return result.ToActionResult();
+    }
 }

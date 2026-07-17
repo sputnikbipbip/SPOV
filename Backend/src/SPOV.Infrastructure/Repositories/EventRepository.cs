@@ -30,4 +30,17 @@ public class EventRepository : IEventRepository
         await _db.SaveChangesAsync();
         return @event;
     }
+
+    public async Task<Event> UpdateAsync(Event @event)
+    {
+        _db.Events.Update(@event);
+        await _db.SaveChangesAsync();
+        return @event;
+    }
+
+    public async Task DeleteAsync(Event @event)
+    {
+        _db.Events.Remove(@event);
+        await _db.SaveChangesAsync();
+    }
 }

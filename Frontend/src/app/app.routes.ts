@@ -9,6 +9,10 @@ import { EventComponent } from './pages/event.component';
 import { ContactsComponent } from './pages/contacts.component';
 import { LegalComponent } from './pages/legal.component';
 import { ThankYouComponent } from './pages/thank-you.component';
+import { AdminLoginComponent } from './pages/admin-login.component';
+import { AdminEventsComponent } from './pages/admin-events.component';
+import { AdminLayoutComponent } from './admin-layout.component';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, title: 'SPOV - Sociedade Portuguesa de Oncologia Veterinária' },
@@ -25,5 +29,10 @@ export const routes: Routes = [
   { path: 'privacidade', component: LegalComponent, title: 'Privacidade - SPOV', data: { eyebrow: 'Privacidade', title: 'Privacidade com uma base clara e institucional.', text: 'A SPOV recolhe apenas o essencial, com transparência e consentimento claro.' } },
   { path: 'cookies', component: LegalComponent, title: 'Cookies - SPOV', data: { eyebrow: 'Cookies', title: 'Uso de cookies explicado de forma simples.', text: 'A SPOV utiliza apenas cookies técnicos e essenciais ao funcionamento do website.' } },
   { path: 'acessibilidade', component: LegalComponent, title: 'Acessibilidade - SPOV', data: { eyebrow: 'Acessibilidade', title: 'Compromisso com um website acessível e utilizável.', text: 'A SPOV está empenhada em tornar o seu website acessível a todos os utilizadores.' } },
+  { path: 'admin/login', component: AdminLoginComponent, title: 'Admin Login - SPOV' },
+  { path: 'admin', component: AdminLayoutComponent, canActivate: [AuthGuard], children: [
+    { path: '', redirectTo: 'eventos', pathMatch: 'full' },
+    { path: 'eventos', component: AdminEventsComponent, title: 'Gerir Eventos - SPOV Admin' }
+  ] },
   { path: '**', redirectTo: '' }
 ];

@@ -47,6 +47,15 @@ using (var scope = app.Services.CreateScope())
         await roleManager.CreateAsync(new IdentityRole(Roles.Administrator));
     if (!await roleManager.RoleExistsAsync(Roles.Partner))
         await roleManager.CreateAsync(new IdentityRole(Roles.Partner));
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    if (await userManager.FindByEmailAsync("admin@spov.pt") is null)
+    {
+        var admin = new ApplicationUser { UserName = "admin@spov.pt", Email = "admin@spov.pt", FullName = "Administrador SPOV" };
+        var result = await userManager.CreateAsync(admin, "Admin123!");
+        if (result.Succeeded)
+            await userManager.AddToRoleAsync(admin, Roles.Administrator);
+    }
 }
 
 if (app.Environment.IsDevelopment())

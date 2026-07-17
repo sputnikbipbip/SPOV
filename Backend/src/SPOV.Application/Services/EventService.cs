@@ -46,4 +46,31 @@ public class EventService : IEventService
         var created = await _eventRepository.AddAsync(@event);
         return Result<EventDto>.Success(_mapper.Map<EventDto>(created));
     }
+
+    public async Task<Result<EventDto>> UpdateAsync(int id, UpdateEventRequest request)
+    {
+        var @event = await _eventRepository.GetByIdAsync(id);
+        if (@event is null)
+            return Result<EventDto>.Failure(Error.NotFound($"Event with id {id} not found."));
+
+        @event.Title = request.Title;
+        @event.Description = request.Description;
+        @event.StartDate = request.StartDate;
+        @event.EndDate = request.EndDate;
+        @event.CeCredits = request.CeCredits;
+        @event.IsMembersOnly = request.IsMembersOnly;
+
+        var updated = await _eventRepository.UpdateAsync(@event);
+        return Result<EventDto>.Success(_mapper.Map<EventDto>(updated));
+    }
+
+    public async Task<Result> DeleteAsync(int id)
+    {
+        var @event = await _eventRepository.GetByIdAsync(id);
+        if (@event is null)
+            return Result.Failure(Error.NotFound($"Event with id {id} not found."));
+
+        await _eventRepository.DeleteAsync(@event);
+        return Result.Success();
+    }
 }
