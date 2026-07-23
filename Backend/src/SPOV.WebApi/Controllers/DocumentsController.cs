@@ -27,18 +27,4 @@ public class DocumentsController : ControllerBase
         var result = await _documentService.GetDocumentsAsync(userId, isAdmin);
         return result.ToActionResult();
     }
-
-    [HttpPost(Name = "UploadDocument")]
-    [IgnoreAntiforgeryToken]
-    public async Task<IActionResult> UploadDocument(IFormFile file, [FromForm] string? category)
-    {
-        var ownerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        await using var stream = file.OpenReadStream();
-        var result = await _documentService.UploadDocumentAsync(stream, file.FileName, category, ownerId);
-
-        if (result.IsSuccess && result.Data is not null)
-            return Created($"/api/documents/{result.Data.Id}", result.Data);
-
-        return result.ToActionResult();
-    }
 }

@@ -67,21 +67,4 @@ public class PartnersController : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize]
-    [HttpPost("upload-proof")]
-    public async Task<IActionResult> UploadProof(IFormFile file)
-    {
-        if (file is null || file.Length == 0)
-            return BadRequest(new { error = "Ficheiro não enviado ou vazio." });
-
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var partnerResult = await _partnerService.GetByUserIdAsync(userId);
-
-        if (partnerResult.IsFailure || partnerResult.Data is null)
-            return NotFound(new { error = "Perfil de sócio não encontrado." });
-
-        await using var stream = file.OpenReadStream();
-        var result = await _partnerService.UploadProofAsync(partnerResult.Data.Id, file.FileName, stream);
-        return result.ToActionResult();
-    }
 }

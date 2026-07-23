@@ -15,20 +15,17 @@ public class PartnerService : IPartnerService
     private readonly IPaymentRepository _paymentRepository;
     private readonly IIdentityService _identityService;
     private readonly IMapper _mapper;
-    private readonly IFileStorageService _fileStorage;
 
     public PartnerService(
         IPartnerRepository partnerRepository,
         IPaymentRepository paymentRepository,
         IIdentityService identityService,
-        IMapper mapper,
-        IFileStorageService fileStorage)
+        IMapper mapper)
     {
         _partnerRepository = partnerRepository;
         _paymentRepository = paymentRepository;
         _identityService = identityService;
         _mapper = mapper;
-        _fileStorage = fileStorage;
     }
 
     public async Task<Result<List<PartnerDto>>> GetAllAsync()
@@ -131,16 +128,4 @@ public class PartnerService : IPartnerService
         return Result<PartnerProfileDto>.Success(dto);
     }
 
-    public async Task<Result<string>> UploadProofAsync(int partnerId, string fileName, Stream content)
-    {
-        var partner = await _partnerRepository.GetByIdAsync(partnerId);
-        if (partner is null)
-            return Result<string>.Failure(Error.NotFound("Sócio não encontrado."));
-
-        var filePath = await _fileStorage.SaveFileAsync(fileName, content);
-        partner.PaymentProofUrl = filePath;
-        await _partnerRepository.UpdateAsync(partner);
-
-        return Result<string>.Success(filePath);
-    }
 }
