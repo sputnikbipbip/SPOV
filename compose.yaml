@@ -25,6 +25,7 @@ services:
     build:
       context: ./Backend
       dockerfile: src/SPOV.WebApi/Dockerfile
+    restart: unless-stopped
     env_file:
       - ./Backend/.env
     environment:
@@ -45,6 +46,7 @@ services:
     build:
       context: .
       dockerfile: docker/frontend.Dockerfile
+    restart: unless-stopped
     ports:
       - "4200:80"
     depends_on:

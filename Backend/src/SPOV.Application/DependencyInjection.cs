@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using SPOV.Application.Services;
+using Scrutor;
 
 namespace SPOV.Application;
 
@@ -9,16 +9,11 @@ public static class DependencyInjection
     {
         services.AddAutoMapper(typeof(DependencyInjection).Assembly);
 
-        services.AddScoped<INewsService, NewsService>();
-        services.AddScoped<IPartnerService, PartnerService>();
-        services.AddScoped<IMembershipTierService, MembershipTierService>();
-        services.AddScoped<IPaymentService, PaymentService>();
-        services.AddScoped<IEventService, EventService>();
-        services.AddScoped<IEventRegistrationService, EventRegistrationService>();
-        services.AddScoped<IArticleService, ArticleService>();
-        services.AddScoped<IAdminUserService, AdminUserService>();
-        services.AddScoped<IDocumentService, DocumentService>();
-        services.AddScoped<IContactService, ContactService>();
+        services.Scan(scan => scan
+            .FromAssembliesOf(typeof(DependencyInjection))
+            .AddClasses(classes => classes.InNamespaces("SPOV.Application.Services"))
+            .AsImplementedInterfaces()
+            .WithScopedLifetime());
 
         return services;
     }

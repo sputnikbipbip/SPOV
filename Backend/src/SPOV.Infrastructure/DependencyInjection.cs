@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Scrutor;
 using SPOV.Application.Common.Interfaces;
-using SPOV.Domain.Interfaces;
 using SPOV.Infrastructure.Data;
-using SPOV.Infrastructure.Repositories;
 using SPOV.Infrastructure.Services;
 
 namespace SPOV.Infrastructure;
@@ -20,21 +19,16 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
 
-        services.AddScoped<IPartnerRepository, PartnerRepository>();
-        services.AddScoped<IMembershipTierRepository, MembershipTierRepository>();
-        services.AddScoped<IPaymentRepository, PaymentRepository>();
-        services.AddScoped<IEventRepository, EventRepository>();
-        services.AddScoped<IEventRegistrationRepository, EventRegistrationRepository>();
-        services.AddScoped<INewsRepository, NewsRepository>();
-        services.AddScoped<IArticleRepository, ArticleRepository>();
-        services.AddScoped<IAdminUserRepository, AdminUserRepository>();
-        services.AddScoped<IDocumentRepository, DocumentRepository>();
-        services.AddScoped<IContactRepository, ContactRepository>();
+        services.Scan(scan => scan
+            .FromAssembliesOf(typeof(DependencyInjection))
+            .AddClasses(classes => classes
+                .InNamespaces("SPOV.Infrastructure.Repositories", "SPOV.Infrastructure.Services")
+                .Where(c => c != typeof(FileStorageService)))
+            .AsImplementedInterfaces()
+            .WithScopedLifetime());
 
         services.AddScoped<IFileStorageService>(_ =>
             new FileStorageService(contentRootPath));
-
-        services.AddScoped<IIdentityService, IdentityService>();
 
         return services;
     }

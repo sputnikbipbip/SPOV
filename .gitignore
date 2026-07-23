@@ -103,3 +103,6 @@ BUILD_ARTIFACTS.md
 
 # Junie memory files
 .junie/memory/
+
+# Agent instructions (local to each developer)
+AGENTS.md

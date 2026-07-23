@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" />
+    <PackageReference Include="Scrutor" />
   </ItemGroup>
 
   <ItemGroup>
