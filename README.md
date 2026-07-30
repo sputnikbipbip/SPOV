@@ -45,15 +45,18 @@ make backend-test
 
 ## Project layout
 
-- Backend/: .NET solution and API projects
-  - Backend/SPOV_Backend/: ASP.NET Core API project
-  - Backend/SPOV_Backend.Tests/: API tests
-- Frontend/: Angular application
-- docker/: frontend image definition
-- compose.yaml: Docker Compose configuration for API and frontend
-
-## Recommended next steps
-
-- Keep the current split between frontend and backend, but add a small root-level developer workflow document.
-- Consider a more structured backend layering strategy (API, application, domain, infrastructure) as the project grows.
-- Add CI checks for build, tests, and Docker validation.
+```
+Backend/                     # .NET solution — Clean Architecture
+├── src/
+│   ├── SPOV.Domain/         # Entities, enums, value objects (zero dependencies)
+│   ├── SPOV.Application/    # Use cases, DTOs, interfaces
+│   ├── SPOV.Infrastructure/ # EF Core, repositories, external services
+│   └── SPOV.WebApi/         # Controllers, middleware, configuration
+├── SPOV_Backend.Tests/      # Unit & integration tests (xUnit)
+├── Directory.Build.props
+└── SPOV_Backend.slnx
+Frontend/                    # Angular standalone components
+docker/                      # Frontend image definition
+compose.yaml                 # Docker Compose (API + frontend)
+docs/                        # API reference & roadmap
+```
