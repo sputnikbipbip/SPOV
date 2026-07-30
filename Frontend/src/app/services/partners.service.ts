@@ -123,4 +123,12 @@ export class PartnersService extends ApiService {
     formData.append('file', file);
     return this.post('/api/partners/upload-proof', formData);
   }
+
+  forgotPassword(email: string): Promise<void> {
+    return this.post('/api/auth/forgotPassword', { email });
+  }
+
+  resetPassword(email: string, resetCode: string, newPassword: string): Promise<void> {
+    return this.post('/api/auth/resetPassword', { email, resetCode, newPassword });
+  }
 }

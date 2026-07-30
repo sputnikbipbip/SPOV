@@ -28,6 +28,16 @@ describe('App Routes', () => {
     expect(route).toBe(true);
   });
 
+  it('navigates to /partners/forgot-password', async () => {
+    const route = await router.navigateByUrl('/partners/forgot-password');
+    expect(route).toBe(true);
+  });
+
+  it('navigates to /partners/reset-password', async () => {
+    const route = await router.navigateByUrl('/partners/reset-password');
+    expect(route).toBe(true);
+  });
+
   it('has title metadata on all top-level routes', () => {
     for (const r of routes) {
       if (r.path && r.path !== 'admin' && r.path !== '**') {

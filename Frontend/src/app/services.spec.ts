@@ -114,6 +114,24 @@ describe('PartnersService', () => {
     const result = await promise;
     expect(result.fullName).toBe('Updated');
   });
+
+  it('forgotPassword sends POST to /api/auth/forgotPassword', async () => {
+    const promise = service.forgotPassword('test@spov.pt');
+    const req = httpMock.expectOne('/api/auth/forgotPassword');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'test@spov.pt' });
+    req.flush(null);
+    await promise;
+  });
+
+  it('resetPassword sends POST to /api/auth/resetPassword', async () => {
+    const promise = service.resetPassword('test@spov.pt', 'code123', 'NewPass123!');
+    const req = httpMock.expectOne('/api/auth/resetPassword');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'test@spov.pt', resetCode: 'code123', newPassword: 'NewPass123!' });
+    req.flush(null);
+    await promise;
+  });
 });
 
 describe('EventsService', () => {

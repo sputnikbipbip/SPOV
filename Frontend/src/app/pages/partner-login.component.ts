@@ -28,6 +28,10 @@ import { AuthService } from '../services/auth.service';
           <input type="password" formControlName="password" placeholder="A sua palavra-passe" autocomplete="current-password" />
         </label>
 
+        <p style="text-align:right;font-size:0.85rem;margin:-0.25rem 0 0.5rem;">
+          <a routerLink="/partners/forgot-password" style="color:var(--spov-muted);text-decoration:underline;">Esqueceu-se da palavra-passe?</a>
+        </p>
+
         <button type="submit" class="button button-primary" [disabled]="loading" style="width:100%;justify-content:center;">
           {{ loading ? 'A iniciar sessão…' : 'Iniciar Sessão' }}
         </button>

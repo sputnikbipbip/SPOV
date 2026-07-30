@@ -19,6 +19,8 @@ import { AdminLoginComponent } from './pages/admin-login.component';
 import { AdminEventsComponent } from './pages/admin-events.component';
 import { AdminPartnersComponent } from './pages/admin-partners.component';
 import { EventsService } from './services/events.service';
+import { PartnerForgotPasswordComponent } from './pages/partner-forgot-password.component';
+import { PartnerResetPasswordComponent } from './pages/partner-reset-password.component';
 import { PartnersService } from './services/partners.service';
 
 /** Wait for the microtask queue to drain completely after HTTP flush. */
@@ -335,6 +337,46 @@ describe('DocumentsComponent', () => {
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('relatorio.pdf');
+  });
+});
+
+describe('PartnerForgotPasswordComponent', () => {
+  let fixture: ComponentFixture<PartnerForgotPasswordComponent>;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [PartnerForgotPasswordComponent], providers: [provideHttpClient(), provideRouter(routes)] });
+    fixture = TestBed.createComponent(PartnerForgotPasswordComponent);
+    fixture.detectChanges();
+  });
+
+  it('renders forgot password form', () => {
+    expect(fixture.nativeElement.textContent).toContain('Recuperar palavra-passe');
+  });
+
+  it('shows email input field', () => {
+    const input = fixture.nativeElement.querySelector('input[type="email"]');
+    expect(input).not.toBeNull();
+  });
+
+  it('has link back to login', () => {
+    const links = fixture.nativeElement.querySelectorAll('a[routerLink="/partners/login"]');
+    expect(links.length).toBeGreaterThan(0);
+  });
+});
+
+describe('PartnerResetPasswordComponent', () => {
+  it('renders error when params missing', () => {
+    TestBed.configureTestingModule({ imports: [PartnerResetPasswordComponent], providers: [provideHttpClient(), provideRouter(routes), { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: { get: () => null } } } }] });
+    const fixture = TestBed.createComponent(PartnerResetPasswordComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Link inválido');
+  });
+
+  it('renders form when params present', () => {
+    TestBed.configureTestingModule({ imports: [PartnerResetPasswordComponent], providers: [provideHttpClient(), provideRouter(routes), { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: { get: (key: string) => key === 'email' ? 'test@test.com' : 'code123' } } } }] });
+    const fixture = TestBed.createComponent(PartnerResetPasswordComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Definir nova palavra-passe');
   });
 });
 

@@ -5,6 +5,8 @@ import { MembershipComponent } from './pages/membership.component';
 import { PartnerRegistrationComponent } from './pages/partner-registration.component';
 import { PartnerLoginComponent } from './pages/partner-login.component';
 import { PartnerProfileComponent } from './pages/partner-profile.component';
+import { PartnerForgotPasswordComponent } from './pages/partner-forgot-password.component';
+import { PartnerResetPasswordComponent } from './pages/partner-reset-password.component';
 import { DocumentsComponent } from './pages/documents.component';
 import { EventsComponent } from './pages/events.component';
 import { EventComponent } from './pages/event.component';
@@ -26,6 +28,8 @@ export const routes: Routes = [
   { path: 'partners', component: MembershipComponent, title: 'Sócios - SPOV' },
   { path: 'partners/join', component: PartnerRegistrationComponent, title: 'Aderir à SPOV - Sócios' },
   { path: 'partners/login', component: PartnerLoginComponent, title: 'Iniciar Sessão - Sócios' },
+  { path: 'partners/forgot-password', component: PartnerForgotPasswordComponent, title: 'Recuperar Palavra-passe - Sócios' },
+  { path: 'partners/reset-password', component: PartnerResetPasswordComponent, title: 'Redefinir Palavra-passe - Sócios' },
   { path: 'partners/profile', component: PartnerProfileComponent, canActivate: [PartnerAuthGuard], title: 'O meu perfil - Sócios' },
   { path: 'documents', component: DocumentsComponent, canActivate: [PartnerAuthGuard], title: 'Documentos - SPOV' },
   { path: 'events', component: EventsComponent, title: 'Eventos - SPOV' },
