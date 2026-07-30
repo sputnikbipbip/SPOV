@@ -35,4 +35,15 @@ public class EventRegistrationRepository : IEventRegistrationRepository
     {
         return await _db.EventRegistrations.AnyAsync(r => r.EventId == eventId && r.PartnerId == partnerId);
     }
+
+    public async Task<EventRegistration?> GetByIdAsync(int id)
+    {
+        return await _db.EventRegistrations.FindAsync(id);
+    }
+
+    public async Task DeleteAsync(EventRegistration registration)
+    {
+        _db.EventRegistrations.Remove(registration);
+        await _db.SaveChangesAsync();
+    }
 }

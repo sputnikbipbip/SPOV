@@ -34,6 +34,10 @@ public class MappingProfile : Profile
         CreateMap<Payment, PaymentDto>();
         CreateMap<Event, EventDto>();
         CreateMap<EventRegistration, EventRegistrationDto>();
+        CreateMap<EventRegistration, PartnerRegistrationDto>()
+            .ForMember(d => d.EventTitle, o => o.Ignore())
+            .ForMember(d => d.EventStartDate, o => o.Ignore())
+            .ForMember(d => d.EventEndDate, o => o.Ignore());
         CreateMap<Article, ArticleDto>();
         CreateMap<AdminUser, AdminUserDto>()
             .ForMember(d => d.Role, o => o.MapFrom(s => s.Role.ToString()));

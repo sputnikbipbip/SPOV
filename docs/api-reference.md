@@ -260,6 +260,8 @@ These endpoints manage SPOV members (sócios).
 | GET | `/api/partners/{id}` | Yes | AdminOnly | **Admin only** | Get a specific partner by ID. |
 | GET | `/api/partners/me` | Yes | [Authorize] | **Any authenticated user** | Get your own partner profile (you must have a Partner entity linked to your user). |
 | GET | `/api/partners/my-profile` | Yes | [Authorize] | **Any authenticated user** | Get your full partner profile including payment history. |
+| PUT | `/api/partners/me` | Yes | [Authorize] | **Any authenticated user** | **Update your own profile.** Editable fields: FullName, Phone, TaxId, BirthDate, Address, City, ZipCode, Country, AcademicQualifications, ProfessionalCardNumber, Profession, CompanyName, CompanyPhone, Observations. |
+| GET | `/api/partners/me/registrations` | Yes | [Authorize] | **Any authenticated user** | Get your event registrations (includes event title and dates). |
 | POST | `/api/partners/{id}/approve` | Yes | AdminOnly | **Admin only** | **Approve a pending partner.** Changes their MembershipStatus from "Pending" to "Active". |
 
 **Detailed: Register a new partner (`POST /api/partners/register`):**
@@ -300,7 +302,8 @@ The password you provide is hashed and stored securely. It is never stored in pl
 | Method | Path | Auth | Policy | Who can call | Description |
 |--------|------|------|--------|-------------|-------------|
 | GET | `/api/events/{eventId}/registrations` | Yes | AdminOnly | **Admin only** | List all registrations for an event. |
-| POST | `/api/events/{eventId}/registrations` | Yes | [Authorize] | **Any authenticated user** | Register yourself for an event. |
+| POST | `/api/events/{eventId}/registrations` | Yes | [Authorize] | **Any authenticated user** | Register yourself for an event. The partner ID is resolved from the JWT token — no body needed. |
+| DELETE | `/api/events/{eventId}/registrations` | Yes | [Authorize] | **Any authenticated user** | Cancel your own registration for an event. The partner ID is resolved from the JWT token. |
 
 ---
 
@@ -472,23 +475,24 @@ The Angular frontend has dedicated pages for partners:
 
 | Path | Page | Auth Required | Description |
 |------|------|-------------|-------------|
-| `/socios/login` | Login | No | Login form. Enter email + password to get a JWT token. |
-| `/socios/aderir` | Register | No | Registration form. Creates a new partner account with status "Pending". |
-| `/socios/perfil` | Profile | **Yes** | View your profile, membership status, and payment history. Protected by `PartnerAuthGuard`. |
+| `/partners/login` | Login | No | Login form. Enter email + password to get a JWT token. |
+| `/partners/join` | Register | No | Registration form. Creates a new partner account with status "Pending". |
+| `/partners/profile` | Profile | **Yes** | View your profile, edit info, membership status, payment history, and event registrations. Protected by `PartnerAuthGuard`. |
+| `/documents` | Documents | **Yes** | Access shared documents. Protected by `PartnerAuthGuard`. |
 
 ### How the Frontend Auth Flow Works
 
 ```
-1. User visits /socios/login
+1. User visits /partners/login
 2. Types email + password, clicks "Iniciar Sessão"
 3. Frontend calls: POST /api/auth/login { email, password }
 4. API returns: { accessToken: "eyJ...", tokenType: "Bearer", expiresIn: 3600 }
 5. Frontend saves the token in browser localStorage as "spov_token"
-6. User is redirected to /socios/perfil
+6. User is redirected to /partners/profile
 7. Profile page calls: GET /api/partners/my-profile
    (the token is automatically sent in the Authorization header)
 8. API verifies the token, looks up the partner, returns the profile
-9. User sees their name, membership status, payments, etc.
+9. User sees their name, membership status, payments, event registrations, etc.
 ```
 
 ### What is localStorage?
@@ -500,9 +504,9 @@ The Angular frontend has dedicated pages for partners:
 | Path | Page | Auth Required | Description |
 |------|------|-------------|-------------|
 | `/admin/login` | Admin Login | No | Admin login form. |
-| `/admin` | Layout | **Yes** | Redirects to `/admin/eventos`. Protected by `AuthGuard`. |
-| `/admin/eventos` | Manage Events | **Yes** | Create, edit, and delete events. |
-| `/admin/socios` | Manage Partners | **Yes** | View all partners and approve pending ones. |
+| `/admin` | Layout | **Yes** | Redirects to `/admin/events`. Protected by `AuthGuard`. |
+| `/admin/events` | Manage Events | **Yes** | Create, edit, and delete events. |
+| `/admin/partners` | Manage Partners | **Yes** | View all partners and approve pending ones. |
 
 > **Note:** Admin and partner authentication share the same token key (`spov_token` in localStorage). The difference is the user's role, which is enforced server-side. An admin can do everything a partner can, plus admin-only operations.
 
@@ -525,17 +529,19 @@ The Angular frontend has dedicated pages for partners:
   POST /api/auth/login         GET /api/partners/me      GET /api/documents     GET /api/partners
   POST /api/auth/register      GET /api/partners/                              GET /api/partners/{id}
   POST /api/partners/register     my-profile                                   POST /api/partners/{id}/approve
-  GET /health                  POST /api/events/*/                             POST /api/events
-  GET /api/events                  registrations                               PUT /api/events/{id}
-  GET /api/events/{id}                                                         DELETE /api/events/{id}
-  GET /api/news                                                               GET /api/events/*/registrations
-  GET /api/news/{id}                                                          POST /api/news
+  GET /health                  PUT /api/partners/me                            POST /api/events
+  GET /api/events              GET /api/partners/                              PUT /api/events/{id}
+  GET /api/events/{id}            me/registrations                             DELETE /api/events/{id}
+  GET /api/news                POST /api/events/*/                             GET /api/events/*/registrations
+  GET /api/news/{id}              registrations                                POST /api/news
+                               DELETE /api/events/*/
+                                  registrations
   GET /api/articles                                                           PUT /api/news/{id}
   POST /api/contacts                                                          DELETE /api/news/{id}
   GET /api/membership-tiers                                                    POST /api/articles
-                                                                              GET /api/membership-tiers/{id}
-                                                                              GET /api/partners/*/payments
-                                                                              GET /api/admin-users
+                                                                               GET /api/membership-tiers/{id}
+                                                                               GET /api/partners/*/payments
+                                                                               GET /api/admin-users
 ```
 
 ---

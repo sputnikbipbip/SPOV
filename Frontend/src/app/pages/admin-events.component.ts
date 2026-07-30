@@ -24,6 +24,7 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest } from 
           <label class="field-full">Descrição <textarea formControlName="description" rows="3" placeholder="Descrição do evento"></textarea></label>
           <label>Data Início <input type="datetime-local" formControlName="startDate"></label>
           <label>Data Fim <input type="datetime-local" formControlName="endDate"></label>
+          <label>Local <input formControlName="location" placeholder="Ex: Hotel Coimbra Aeminium"></label>
           <label>Créditos CE <input type="number" formControlName="ceCredits" placeholder="Ex: 4"></label>
           <label class="checkbox-label"><input type="checkbox" formControlName="isMembersOnly"> Apenas para sócios</label>
         </div>
@@ -46,6 +47,7 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest } from 
                 <label class="field-full">Descrição <textarea formControlName="description" rows="3" placeholder="Descrição do evento"></textarea></label>
                 <label>Data Início <input type="datetime-local" formControlName="startDate"></label>
                 <label>Data Fim <input type="datetime-local" formControlName="endDate"></label>
+                <label>Local <input formControlName="location" placeholder="Ex: Hotel Coimbra Aeminium"></label>
                 <label>Créditos CE <input type="number" formControlName="ceCredits" placeholder="Ex: 4"></label>
                 <label class="checkbox-label"><input type="checkbox" formControlName="isMembersOnly"> Apenas para sócios</label>
               </div>
@@ -87,6 +89,7 @@ export class AdminEventsComponent implements OnInit {
     description: new FormControl('', { nonNullable: true }),
     startDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
     endDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    location: new FormControl('', { nonNullable: true }),
     ceCredits: new FormControl<number | null>(null),
     isMembersOnly: new FormControl(false, { nonNullable: true })
   });
@@ -128,6 +131,7 @@ export class AdminEventsComponent implements OnInit {
       description: new FormControl(event.description ?? '', { nonNullable: true }),
       startDate: new FormControl(this.toDatetimeLocal(event.startDate), { nonNullable: true, validators: Validators.required }),
       endDate: new FormControl(this.toDatetimeLocal(event.endDate), { nonNullable: true, validators: Validators.required }),
+      location: new FormControl(event.location ?? '', { nonNullable: true }),
       ceCredits: new FormControl(event.ceCredits),
       isMembersOnly: new FormControl(event.isMembersOnly, { nonNullable: true })
     });
@@ -145,6 +149,7 @@ export class AdminEventsComponent implements OnInit {
       description: raw.description || null,
       startDate: new Date(raw.startDate).toISOString(),
       endDate: new Date(raw.endDate).toISOString(),
+      location: raw.location || null,
       ceCredits: raw.ceCredits ?? null,
       isMembersOnly: raw.isMembersOnly
     };

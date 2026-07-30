@@ -10,20 +10,49 @@ import { eventMeta, navItems } from './content';
 })
 export class LogoComponent {}
 
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  const months = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+}
+
+function formatDateRange(start: string, end: string): string {
+  const s = new Date(start);
+  const e = new Date(end);
+  if (s.toDateString() === e.toDateString()) {
+    return `${formatDate(start)} · ${formatTime(start)} – ${formatTime(end)}`;
+  }
+  return `${formatDate(start)} – ${formatDate(end)}`;
+}
+
 @Component({
   selector: 'app-event-meta',
   standalone: true,
   template: `
     <div class="event-meta" [class.event-meta-invert]="invert">
-      @for (item of eventMeta; track item.label) {
-        <div><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div>
+      @if (eventData) {
+        <div><span>Data</span><strong>{{ formatDateRange(eventData.startDate, eventData.endDate) }}</strong></div>
+        @if (eventData.location) {
+          <div><span>Local</span><strong>{{ eventData.location }}</strong></div>
+        }
+      } @else {
+        @for (item of staticMeta; track item.label) {
+          <div><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div>
+        }
       }
     </div>
   `
 })
 export class EventMetaComponent {
   @Input() invert = false;
-  protected readonly eventMeta = eventMeta;
+  @Input() eventData: { startDate: string; endDate: string; location: string | null } | null = null;
+  protected readonly staticMeta = eventMeta;
+  protected readonly formatDateRange = formatDateRange;
 }
 
 @Component({

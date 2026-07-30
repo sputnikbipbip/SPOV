@@ -79,6 +79,23 @@ export interface PartnerProfileDto {
   payments: PaymentDto[];
 }
 
+export interface UpdatePartnerProfileRequest {
+  fullName: string;
+  phone: string;
+  taxId?: string;
+  birthDate?: string;
+  address?: string;
+  city?: string;
+  zipCode?: string;
+  country?: string;
+  academicQualifications?: string;
+  professionalCardNumber?: string;
+  profession?: string;
+  companyName?: string;
+  companyPhone?: string;
+  observations?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PartnersService extends ApiService {
   register(data: RegisterPartnerRequest): Promise<PartnerProfileDto> {
@@ -97,9 +114,21 @@ export class PartnersService extends ApiService {
     return this.get('/api/partners/my-profile');
   }
 
+  updateProfile(data: UpdatePartnerProfileRequest): Promise<PartnerProfileDto> {
+    return this.put('/api/partners/me', data);
+  }
+
   uploadProof(file: File): Promise<{ filePath: string }> {
     const formData = new FormData();
     formData.append('file', file);
     return this.post('/api/partners/upload-proof', formData);
+  }
+
+  forgotPassword(email: string): Promise<void> {
+    return this.post('/api/auth/forgotPassword', { email });
+  }
+
+  resetPassword(email: string, resetCode: string, newPassword: string): Promise<void> {
+    return this.post('/api/auth/resetPassword', { email, resetCode, newPassword });
   }
 }

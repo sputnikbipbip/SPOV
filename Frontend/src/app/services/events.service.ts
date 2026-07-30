@@ -7,6 +7,7 @@ export interface EventDto {
   description: string | null;
   startDate: string;
   endDate: string;
+  location: string | null;
   ceCredits: number | null;
   isMembersOnly: boolean;
 }
@@ -16,6 +17,7 @@ export interface CreateEventRequest {
   description: string | null;
   startDate: string;
   endDate: string;
+  location: string | null;
   ceCredits: number | null;
   isMembersOnly: boolean;
 }
@@ -25,8 +27,18 @@ export interface UpdateEventRequest {
   description: string | null;
   startDate: string;
   endDate: string;
+  location: string | null;
   ceCredits: number | null;
   isMembersOnly: boolean;
+}
+
+export interface PartnerRegistrationDto {
+  id: number;
+  eventId: number;
+  registeredAt: string;
+  eventTitle: string;
+  eventStartDate: string;
+  eventEndDate: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -49,5 +61,17 @@ export class EventsService extends ApiService {
 
   delete(id: number): Promise<void> {
     return this.del(`/api/events/${id}`);
+  }
+
+  registerForEvent(eventId: number): Promise<PartnerRegistrationDto> {
+    return this.post(`/api/events/${eventId}/registrations`, null);
+  }
+
+  getMyRegistrations(): Promise<PartnerRegistrationDto[]> {
+    return this.get('/api/partners/me/registrations');
+  }
+
+  cancelRegistration(eventId: number): Promise<void> {
+    return this.del(`/api/events/${eventId}/registrations`);
   }
 }

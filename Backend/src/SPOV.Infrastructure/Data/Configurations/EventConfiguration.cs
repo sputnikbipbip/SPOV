@@ -12,5 +12,6 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.Property(e => e.Title).IsRequired().HasMaxLength(300);
         builder.Property(e => e.StartDate).IsRequired();
         builder.Property(e => e.EndDate).IsRequired();
+        builder.Property(e => e.Location).HasMaxLength(200);
     }
 }
