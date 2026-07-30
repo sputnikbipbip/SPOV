@@ -140,4 +140,36 @@ public class PartnerService : IPartnerService
         return Result<PartnerProfileDto>.Success(dto);
     }
 
+    public async Task<Result<PartnerProfileDto>> UpdateProfileAsync(string userId, UpdatePartnerProfileRequest request)
+    {
+        var partner = await _partnerRepository.GetByUserIdAsync(userId);
+        if (partner is null)
+            return Result<PartnerProfileDto>.Failure(Error.NotFound("Perfil de sócio não encontrado."));
+
+        partner.FullName = request.FullName;
+        partner.Phone = request.Phone;
+        partner.TaxId = request.TaxId;
+        partner.Address = request.Address;
+        partner.City = request.City;
+        partner.ZipCode = request.ZipCode;
+        partner.Country = request.Country;
+        partner.AcademicQualifications = request.AcademicQualifications;
+        partner.ProfessionalCardNumber = request.ProfessionalCardNumber;
+        partner.Profession = request.Profession;
+        partner.CompanyName = request.CompanyName;
+        partner.CompanyPhone = request.CompanyPhone;
+        partner.Observations = request.Observations;
+
+        if (!string.IsNullOrWhiteSpace(request.BirthDate) && DateOnly.TryParse(request.BirthDate, out var parsed))
+            partner.BirthDate = parsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        await _partnerRepository.UpdateAsync(partner);
+
+        var dto = _mapper.Map<PartnerProfileDto>(partner);
+        var payments = await _paymentRepository.GetByPartnerIdAsync(partner.Id);
+        dto.Payments = _mapper.Map<List<PaymentDto>>(payments);
+
+        return Result<PartnerProfileDto>.Success(dto);
+    }
+
 }

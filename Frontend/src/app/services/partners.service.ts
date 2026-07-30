@@ -79,6 +79,23 @@ export interface PartnerProfileDto {
   payments: PaymentDto[];
 }
 
+export interface UpdatePartnerProfileRequest {
+  fullName: string;
+  phone: string;
+  taxId?: string;
+  birthDate?: string;
+  address?: string;
+  city?: string;
+  zipCode?: string;
+  country?: string;
+  academicQualifications?: string;
+  professionalCardNumber?: string;
+  profession?: string;
+  companyName?: string;
+  companyPhone?: string;
+  observations?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PartnersService extends ApiService {
   register(data: RegisterPartnerRequest): Promise<PartnerProfileDto> {
@@ -95,6 +112,10 @@ export class PartnersService extends ApiService {
 
   getMyProfile(): Promise<PartnerProfileDto> {
     return this.get('/api/partners/my-profile');
+  }
+
+  updateProfile(data: UpdatePartnerProfileRequest): Promise<PartnerProfileDto> {
+    return this.put('/api/partners/me', data);
   }
 
   uploadProof(file: File): Promise<{ filePath: string }> {

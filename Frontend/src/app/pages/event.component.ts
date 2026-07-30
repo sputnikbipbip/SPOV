@@ -5,6 +5,7 @@ import { posterUrl, speakers } from '../content';
 import { FormFieldComponent, FormNotesComponent, TextareaFieldComponent } from '../form.components';
 import { EventMetaComponent } from '../shared.components';
 import { ContactsService } from '../services/contacts.service';
+import { AuthService } from '../services/auth.service';
 import { EventsService, EventDto } from '../services/events.service';
 
 @Component({
@@ -12,7 +13,7 @@ import { EventsService, EventDto } from '../services/events.service';
   standalone: true,
   imports: [RouterLink, ReactiveFormsModule, EventMetaComponent, FormFieldComponent, TextareaFieldComponent, FormNotesComponent],
   template: `
-    <section class="section event-hero"><div class="container event-hero-grid"><div><span class="badge badge-yellow">20% desconto sócios AEVPORT</span><h1>{{ event?.title ?? 'Evento' }}</h1><p>{{ event?.description ?? '' }}</p><div class="hero-actions"><a class="button button-light" href="#inscricao">Inscrever-me</a><a routerLink="/partners" class="button button-secondary-light">Tornar-me sócio</a></div></div><div class="event-panel"><span class="eyebrow eyebrow-light">{{ event?.title ?? 'Evento' }}</span><app-event-meta [invert]="true" /><img class="section-image section-image-contrast" [src]="posterUrl" alt="Material visual do evento SPOV"></div></div></section>
+    <section class="section event-hero"><div class="container event-hero-grid"><div><span class="badge badge-yellow">20% desconto sócios AEVPORT</span><h1>{{ event?.title ?? 'Evento' }}</h1><p>{{ event?.description ?? '' }}</p>            <div class="hero-actions"><a routerLink="/partners" class="button button-secondary-light">Tornar-me sócio</a>@if (isLoggedIn) {@if (isRegistered) {<span class="badge badge-dark" style="font-size:1rem;">Inscrito</span><button type="button" class="button button-danger" [disabled]="cancelLoading" (click)="cancel()">{{ cancelLoading ? 'A cancelar…' : 'Cancelar inscrição' }}</button>}@else {<button type="button" class="button button-primary" [disabled]="registerLoading" (click)="register()">{{ registerLoading ? 'A registar…' : 'Inscrever como sócio' }}</button>}}@else {<a routerLink="/partners/login" class="button button-light">Inscrever-me</a>}</div>@if (registerError) { <div class="form-error-banner" style="margin-top:1rem;">{{ registerError }}</div> }@if (registerSuccess) { <div class="success-banner" style="margin-top:1rem;"><strong>Inscrição confirmada!</strong></div> }</div><div class="event-panel"><span class="eyebrow eyebrow-light">{{ event?.title ?? 'Evento' }}</span><app-event-meta [invert]="true" /><img class="section-image section-image-contrast" [src]="posterUrl" alt="Material visual do evento SPOV"></div></div></section>
     <section class="section"><div class="container content-grid">@for (card of cards; track card.title) { <article class="content-card"><img class="card-image" [src]="posterUrl" [alt]="card.title" loading="lazy" decoding="async"><h3>{{ card.title }}</h3><p>{{ card.text }}</p></article> }</div></section>
     <section class="section section-soft"><div class="container program-section"><div class="section-heading"><span class="eyebrow">Programa</span><h2>Agenda modular com leitura clara.</h2></div><div class="program-list">@for (item of program; track item.time) { <div class="program-item"><strong>{{ item.time }}</strong><span>{{ item.title }}</span></div> }</div></div></section>
     <section class="section"><div class="container"><div class="section-heading"><span class="eyebrow">Oradores e temas</span><h2>Blocos simples para manter a página leve.</h2></div><div class="content-grid">@for (speaker of speakers; track speaker.name) { <article class="content-card"><img class="card-image" [src]="posterUrl" alt="Visual SPOV"><h3>{{ speaker.name }}</h3><p>{{ speaker.role }}</p></article> }</div></div></section>
@@ -29,11 +30,21 @@ export class EventComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly eventsService = inject(EventsService);
   private readonly contactsService = inject(ContactsService);
+  private readonly authService = inject(AuthService);
   protected readonly posterUrl = posterUrl;
   protected readonly speakers = speakers;
   protected event: EventDto | null = null;
   protected loading = false;
   protected error = '';
+  protected isRegistered = false;
+  protected registerLoading = false;
+  protected cancelLoading = false;
+  protected registerError = '';
+  protected registerSuccess = false;
+
+  protected get isLoggedIn(): boolean {
+    return this.authService.isAuthenticated();
+  }
   protected readonly cards = [
     { title: 'Atualização científica', text: 'Conteúdos essenciais organizados para aplicação prática em contexto clínico.' },
     { title: 'Networking', text: 'Ligação entre equipas, sócios e profissionais com interesses comuns.' },
@@ -60,8 +71,42 @@ export class EventComponent implements OnInit {
     }
     try {
       this.event = await this.eventsService.getById(id);
+      if (this.isLoggedIn) {
+        const registrations = await this.eventsService.getMyRegistrations();
+        this.isRegistered = registrations.some(r => r.eventId === id);
+      }
     } catch {
       await this.router.navigate(['/events']);
+    }
+  }
+
+  protected async register() {
+    if (!this.event) return;
+    this.registerLoading = true;
+    this.registerError = '';
+    this.registerSuccess = false;
+    try {
+      await this.eventsService.registerForEvent(this.event.id);
+      this.isRegistered = true;
+      this.registerSuccess = true;
+    } catch (e) {
+      this.registerError = e instanceof Error ? e.message : 'Erro ao registar no evento.';
+    } finally {
+      this.registerLoading = false;
+    }
+  }
+
+  protected async cancel() {
+    if (!this.event) return;
+    this.cancelLoading = true;
+    this.registerError = '';
+    try {
+      await this.eventsService.cancelRegistration(this.event.id);
+      this.isRegistered = false;
+    } catch (e) {
+      this.registerError = e instanceof Error ? e.message : 'Erro ao cancelar inscrição.';
+    } finally {
+      this.cancelLoading = false;
     }
   }
 

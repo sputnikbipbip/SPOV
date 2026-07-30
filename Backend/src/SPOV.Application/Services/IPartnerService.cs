@@ -12,4 +12,5 @@ public interface IPartnerService
     Task<Result<PartnerProfileDto>> RegisterAsync(RegisterPartnerRequest request);
     Task<Result<PartnerProfileDto>> GetProfileByUserIdAsync(string userId);
     Task<Result<PartnerDto>> ApproveAsync(int id);
+    Task<Result<PartnerProfileDto>> UpdateProfileAsync(string userId, UpdatePartnerProfileRequest request);
 }

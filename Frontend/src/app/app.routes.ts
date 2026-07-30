@@ -5,6 +5,7 @@ import { MembershipComponent } from './pages/membership.component';
 import { PartnerRegistrationComponent } from './pages/partner-registration.component';
 import { PartnerLoginComponent } from './pages/partner-login.component';
 import { PartnerProfileComponent } from './pages/partner-profile.component';
+import { DocumentsComponent } from './pages/documents.component';
 import { EventsComponent } from './pages/events.component';
 import { EventComponent } from './pages/event.component';
 import { ContactsComponent } from './pages/contacts.component';
@@ -26,6 +27,7 @@ export const routes: Routes = [
   { path: 'partners/join', component: PartnerRegistrationComponent, title: 'Aderir à SPOV - Sócios' },
   { path: 'partners/login', component: PartnerLoginComponent, title: 'Iniciar Sessão - Sócios' },
   { path: 'partners/profile', component: PartnerProfileComponent, canActivate: [PartnerAuthGuard], title: 'O meu perfil - Sócios' },
+  { path: 'documents', component: DocumentsComponent, canActivate: [PartnerAuthGuard], title: 'Documentos - SPOV' },
   { path: 'events', component: EventsComponent, title: 'Eventos - SPOV' },
   { path: 'events/:id', component: EventComponent, title: 'Evento - SPOV' },
   { path: 'contacts', component: ContactsComponent, title: 'Contactos - SPOV' },

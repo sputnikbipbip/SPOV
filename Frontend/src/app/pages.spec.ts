@@ -9,6 +9,7 @@ import { MembershipComponent } from './pages/membership.component';
 import { PartnerRegistrationComponent } from './pages/partner-registration.component';
 import { PartnerLoginComponent } from './pages/partner-login.component';
 import { PartnerProfileComponent } from './pages/partner-profile.component';
+import { DocumentsComponent } from './pages/documents.component';
 import { EventsComponent } from './pages/events.component';
 import { EventComponent } from './pages/event.component';
 import { ContactsComponent } from './pages/contacts.component';
@@ -142,37 +143,63 @@ describe('PartnerLoginComponent', () => {
 });
 
 describe('PartnerProfileComponent', () => {
-  it('shows loading state initially', () => {
+  const profileData = { id: 1, fullName: 'Maria', email: 'maria@test.com', phone: '+351900000000', partnerType: 'Professional', membershipStatus: 'Active', joinedAt: '2025-01-01', payments: [], initiationFee: 30, quotaValue: 50, totalAmount: 80 };
+
+  function createFixture() {
     TestBed.configureTestingModule({ imports: [PartnerProfileComponent], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)] });
     const fixture = TestBed.createComponent(PartnerProfileComponent);
     const httpMock = TestBed.inject(HttpTestingController);
+    return { fixture, httpMock };
+  }
+
+  async function flushProfile(httpMock: HttpTestingController) {
+    httpMock.expectOne('/api/partners/my-profile').flush(profileData);
+    await microtaskTick();
+    httpMock.expectOne('/api/partners/me/registrations').flush([]);
+  }
+
+  it('shows loading state initially', () => {
+    const { fixture, httpMock } = createFixture();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('A carregar perfil');
-    httpMock.expectOne('/api/partners/my-profile').flush({ id: 1, fullName: '', email: '', phone: '', partnerType: 'Professional', membershipStatus: 'Active', joinedAt: '', payments: [], initiationFee: 0, quotaValue: 0, totalAmount: 0 });
+    httpMock.expectOne('/api/partners/my-profile').flush(profileData);
   });
 
   it('renders profile after load', async () => {
-    TestBed.configureTestingModule({ imports: [PartnerProfileComponent], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)] });
-    const fixture = TestBed.createComponent(PartnerProfileComponent);
-    const httpMock = TestBed.inject(HttpTestingController);
+    const { fixture, httpMock } = createFixture();
     fixture.detectChanges();
-    const req = httpMock.expectOne('/api/partners/my-profile');
-    req.flush({ id: 1, fullName: 'Maria', email: 'maria@test.com', phone: '+351900000000', partnerType: 'Professional', membershipStatus: 'Active', joinedAt: '2025-01-01', payments: [], initiationFee: 30, quotaValue: 50, totalAmount: 80 });
+    await flushProfile(httpMock);
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Maria');
   });
 
   it('shows error state on 401', async () => {
-    TestBed.configureTestingModule({ imports: [PartnerProfileComponent], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)] });
-    const fixture = TestBed.createComponent(PartnerProfileComponent);
-    const httpMock = TestBed.inject(HttpTestingController);
+    const { fixture, httpMock } = createFixture();
     fixture.detectChanges();
     const req = httpMock.expectOne('/api/partners/my-profile');
     req.flush({ error: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Sessão expirada');
+  });
+
+  it('shows edit button on profile', async () => {
+    const { fixture, httpMock } = createFixture();
+    fixture.detectChanges();
+    await flushProfile(httpMock);
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Editar Perfil');
+  });
+
+  it('shows documents link on profile', async () => {
+    const { fixture, httpMock } = createFixture();
+    fixture.detectChanges();
+    await flushProfile(httpMock);
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Documentos');
   });
 });
 
@@ -204,11 +231,26 @@ describe('EventComponent', () => {
     TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
     const svc = TestBed.inject(EventsService);
     jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', ceCredits: null, isMembersOnly: false });
+    jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
     const fixture = TestBed.createComponent(EventComponent);
     fixture.detectChanges();
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('My Event');
+  });
+
+  it('shows register button when logged in', async () => {
+    localStorage.setItem('spov_token', 'fake-token');
+    TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', ceCredits: null, isMembersOnly: false });
+    jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
+    const fixture = TestBed.createComponent(EventComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Inscrever como sócio');
+    localStorage.clear();
   });
 });
 
@@ -251,6 +293,31 @@ describe('LegalComponent', () => {
     const fixture = TestBed.createComponent(LegalComponent);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Privacidade');
+  });
+});
+
+describe('DocumentsComponent', () => {
+  it('shows empty state when no documents', async () => {
+    TestBed.configureTestingModule({ imports: [DocumentsComponent], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)] });
+    const fixture = TestBed.createComponent(DocumentsComponent);
+    const httpMock = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    httpMock.expectOne('/api/documents').flush([]);
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Nenhum documento disponível');
+  });
+
+  it('renders documents after load', async () => {
+    TestBed.configureTestingModule({ imports: [DocumentsComponent], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)] });
+    const fixture = TestBed.createComponent(DocumentsComponent);
+    const httpMock = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    const req = httpMock.expectOne('/api/documents');
+    req.flush([{ id: 1, fileName: 'relatorio.pdf', filePath: '/uploads/relatorio.pdf', category: 'Relatórios', uploadDate: '2026-01-01', ownerId: null }]);
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('relatorio.pdf');
   });
 });
 

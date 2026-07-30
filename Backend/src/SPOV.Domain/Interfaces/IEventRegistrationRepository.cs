@@ -8,4 +8,6 @@ public interface IEventRegistrationRepository
     Task<List<EventRegistration>> GetByPartnerIdAsync(int partnerId);
     Task<EventRegistration> AddAsync(EventRegistration registration);
     Task<bool> ExistsAsync(int eventId, int partnerId);
+    Task<EventRegistration?> GetByIdAsync(int id);
+    Task DeleteAsync(EventRegistration registration);
 }

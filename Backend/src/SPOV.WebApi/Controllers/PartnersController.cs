@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SPOV.Application.DTOs.Partners;
 using SPOV.Application.Services;
 using SPOV.WebApi.Extensions;
+using SPOV.Application.DTOs.EventRegistrations;
 
 namespace SPOV.WebApi.Controllers;
 
@@ -12,10 +13,12 @@ namespace SPOV.WebApi.Controllers;
 public class PartnersController : ControllerBase
 {
     private readonly IPartnerService _partnerService;
+    private readonly IEventRegistrationService _registrationService;
 
-    public PartnersController(IPartnerService partnerService)
+    public PartnersController(IPartnerService partnerService, IEventRegistrationService registrationService)
     {
         _partnerService = partnerService;
+        _registrationService = registrationService;
     }
 
     [Authorize(Policy = "AdminOnly")]
@@ -72,6 +75,28 @@ public class PartnersController : ControllerBase
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var result = await _partnerService.GetProfileByUserIdAsync(userId);
+        return result.ToActionResult();
+    }
+
+    [Authorize]
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateProfile(UpdatePartnerProfileRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var result = await _partnerService.UpdateProfileAsync(userId, request);
+        return result.ToActionResult();
+    }
+
+    [Authorize]
+    [HttpGet("me/registrations")]
+    public async Task<IActionResult> GetMyRegistrations()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var partnerResult = await _partnerService.GetByUserIdAsync(userId);
+        if (!partnerResult.IsSuccess || partnerResult.Data is null)
+            return Unauthorized(new { error = "Perfil de sócio não encontrado." });
+
+        var result = await _registrationService.GetPartnerRegistrationsAsync(partnerResult.Data.Id);
         return result.ToActionResult();
     }
 
