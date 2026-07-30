@@ -34,7 +34,7 @@ public class PartnerConfiguration : IEntityTypeConfiguration<Partner>
         builder.Property(p => p.MembershipStatus)
             .HasConversion<string>()
             .HasMaxLength(50);
-        builder.HasOne<MembershipTier>()
+        builder.HasOne(p => p.MembershipTier)
             .WithMany()
             .HasForeignKey(p => p.MembershipTierId)
             .IsRequired(false);

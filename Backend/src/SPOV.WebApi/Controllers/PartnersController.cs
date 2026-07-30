@@ -58,6 +58,14 @@ public class PartnersController : ControllerBase
         return result.ToActionResult();
     }
 
+    [Authorize(Policy = "AdminOnly")]
+    [HttpPost("{id}/approve")]
+    public async Task<IActionResult> Approve(int id)
+    {
+        var result = await _partnerService.ApproveAsync(id);
+        return result.ToActionResult();
+    }
+
     [Authorize]
     [HttpGet("my-profile")]
     public async Task<IActionResult> GetProfile()

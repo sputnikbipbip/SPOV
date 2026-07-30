@@ -21,7 +21,9 @@ public class MappingProfile : Profile
         CreateMap<SharedDocument, DocumentDto>();
         CreateMap<Partner, PartnerDto>()
             .ForMember(d => d.MembershipStatus, o => o.MapFrom(s => s.MembershipStatus.ToString()))
-            .ForMember(d => d.MembershipTierName, o => o.MapFrom(s => s.MembershipTier != null ? s.MembershipTier.Name : null));
+            .ForMember(d => d.MembershipTierName, o => o.MapFrom(s => s.MembershipTier != null ? s.MembershipTier.Name : null))
+            .ForMember(d => d.ClinicName, o => o.MapFrom(s => s.CompanyName))
+            .ForMember(d => d.Specialization, o => o.MapFrom(s => s.Profession));
         CreateMap<Partner, PartnerProfileDto>()
             .ForMember(d => d.MembershipStatus, o => o.MapFrom(s => s.MembershipStatus.ToString()))
             .ForMember(d => d.MembershipTierName, o => o.MapFrom(s => s.MembershipTier != null ? s.MembershipTier.Name : null))

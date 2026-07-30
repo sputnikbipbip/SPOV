@@ -1,0 +1,330 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
+using Xunit;
+
+namespace SPOV_Backend.Tests.IntegrationTests.Partner;
+
+public sealed class PartnerAuthFlowTests
+{
+    private static WebApplicationFactory<Program> CreateFactory() =>
+        new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, config) =>
+                {
+                    config.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:DefaultConnection"] =
+                            "Host=localhost;Port=5432;Database=spov;Username=spov;Password=ciD7M9edVCSTJtcgapmFw3FO"
+                    });
+                });
+            });
+
+    [Fact]
+    public async Task RegisterPartner_Should_CreateUserAndReturnProfile()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"partner-test-{Guid.NewGuid():N}@spov.pt";
+        var response = await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Test Partner",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 000",
+            partnerType = "Professional",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var profile = await response.Content.ReadFromJsonAsync<PartnerProfileResponse>();
+        profile.Should().NotBeNull();
+        profile!.FullName.Should().Be("Test Partner");
+        profile.Email.Should().Be(email);
+        profile.MembershipStatus.Should().Be("Pending");
+        profile.PartnerType.Should().Be("Professional");
+    }
+
+    [Fact]
+    public async Task Login_WithPartnerCredentials_Should_ReturnJwtToken()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"partner-login-{Guid.NewGuid():N}@spov.pt";
+
+        await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Login Test",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 000",
+            partnerType = "Professional",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email,
+            password = "Partner123!"
+        });
+
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        body.Should().NotBeNull();
+        body!.AccessToken.Should().NotBeNullOrEmpty();
+        body.TokenType.Should().Be("Bearer");
+        body.ExpiresIn.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task GetMyProfile_WithValidToken_Should_ReturnFullProfile()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"partner-profile-{Guid.NewGuid():N}@spov.pt";
+
+        await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Profile Test",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 001",
+            partnerType = "Professional",
+            taxId = "123456789",
+            address = "Rua Teste, 123",
+            city = "Lisboa",
+            zipCode = "1000-001",
+            country = "Portugal",
+            profession = "Médico Veterinário",
+            companyName = "Clínica Teste",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email,
+            password = "Partner123!"
+        });
+        var login = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", login!.AccessToken);
+
+        var profileResponse = await client.GetAsync("/api/partners/my-profile");
+
+        profileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var profile = await profileResponse.Content.ReadFromJsonAsync<PartnerProfileResponse>();
+        profile.Should().NotBeNull();
+        profile!.FullName.Should().Be("Profile Test");
+        profile.Email.Should().Be(email);
+        profile.Phone.Should().Be("+351 900 000 001");
+        profile.TaxId.Should().Be("123456789");
+        profile.Address.Should().Be("Rua Teste, 123");
+        profile.City.Should().Be("Lisboa");
+        profile.ZipCode.Should().Be("1000-001");
+        profile.Country.Should().Be("Portugal");
+        profile.Profession.Should().Be("Médico Veterinário");
+        profile.CompanyName.Should().Be("Clínica Teste");
+        profile.MembershipStatus.Should().Be("Pending");
+        profile.PartnerType.Should().Be("Professional");
+        profile.Payments.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetMyProfile_WithoutToken_Should_ReturnUnauthorized()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/api/partners/my-profile");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Login_WithInvalidCredentials_Should_ReturnUnauthorized()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "nonexistent@spov.pt",
+            password = "WrongPassword123!"
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task ApprovePartner_AsAdmin_Should_SetStatusToActive()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"partner-approve-{Guid.NewGuid():N}@spov.pt";
+
+        var registerResponse = await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Approve Me",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 000",
+            partnerType = "Professional",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var partner = await registerResponse.Content.ReadFromJsonAsync<PartnerProfileResponse>();
+
+        var adminLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "admin@spov.pt",
+            password = "Admin123!"
+        });
+        var adminToken = await adminLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken!.AccessToken);
+
+        var approveResponse = await client.PostAsync($"/api/partners/{partner!.Id}/approve", null);
+
+        approveResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var approved = await approveResponse.Content.ReadFromJsonAsync<PartnerDtoResponse>();
+        approved.Should().NotBeNull();
+        approved!.MembershipStatus.Should().Be("Active");
+    }
+
+    [Fact]
+    public async Task ApprovePartner_WithoutAdminRole_Should_ReturnForbidden()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"partner-no-admin-{Guid.NewGuid():N}@spov.pt";
+
+        await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Not Admin",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 000",
+            partnerType = "Professional",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+
+        var partnerLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email,
+            password = "Partner123!"
+        });
+        var partnerToken = await partnerLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", partnerToken!.AccessToken);
+
+        var approveResponse = await client.PostAsync("/api/partners/1/approve", null);
+
+        approveResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task ApprovePartner_WithNonExistentId_Should_ReturnNotFound()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var adminLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "admin@spov.pt",
+            password = "Admin123!"
+        });
+        var adminToken = await adminLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken!.AccessToken);
+
+        var approveResponse = await client.PostAsync("/api/partners/99999/approve", null);
+
+        approveResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task RegisterPartner_WithDuplicateEmail_Should_ReturnConflict()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"partner-duplicate-{Guid.NewGuid():N}@spov.pt";
+
+        var first = await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "First Partner",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 000",
+            partnerType = "Professional",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+        first.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var second = await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Second Partner",
+            email,
+            password = "Partner456!",
+            phone = "+351 900 000 001",
+            partnerType = "Student",
+            initiationFee = 30m,
+            quotaValue = 20m,
+            totalAmount = 50m
+        });
+
+        second.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    private sealed class LoginResponse
+    {
+        public string AccessToken { get; set; } = string.Empty;
+        public string TokenType { get; set; } = string.Empty;
+        public int ExpiresIn { get; set; }
+    }
+
+    private sealed class PartnerDtoResponse
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string MembershipStatus { get; set; } = string.Empty;
+    }
+
+    private sealed class PartnerProfileResponse
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string? TaxId { get; set; }
+        public string? Address { get; set; }
+        public string? City { get; set; }
+        public string? ZipCode { get; set; }
+        public string? Country { get; set; }
+        public string? Profession { get; set; }
+        public string? CompanyName { get; set; }
+        public string PartnerType { get; set; } = string.Empty;
+        public string MembershipStatus { get; set; } = string.Empty;
+        public List<object> Payments { get; set; } = [];
+    }
+}

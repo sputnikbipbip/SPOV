@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-const TOKEN_KEY = 'spov_admin_token';
+const TOKEN_KEY = 'spov_token';
 
 export interface LoginResponse {
   accessToken: string;

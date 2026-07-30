@@ -3,6 +3,7 @@ import { HomeComponent } from './pages/home.component';
 import { AboutComponent, GovernanceComponent, HistoryComponent } from './pages/institutional.component';
 import { MembershipComponent } from './pages/membership.component';
 import { PartnerRegistrationComponent } from './pages/partner-registration.component';
+import { PartnerLoginComponent } from './pages/partner-login.component';
 import { PartnerProfileComponent } from './pages/partner-profile.component';
 import { EventsComponent } from './pages/events.component';
 import { EventComponent } from './pages/event.component';
@@ -11,8 +12,10 @@ import { LegalComponent } from './pages/legal.component';
 import { ThankYouComponent } from './pages/thank-you.component';
 import { AdminLoginComponent } from './pages/admin-login.component';
 import { AdminEventsComponent } from './pages/admin-events.component';
+import { AdminPartnersComponent } from './pages/admin-partners.component';
 import { AdminLayoutComponent } from './admin-layout.component';
 import { AuthGuard } from './guards/auth.guard';
+import { PartnerAuthGuard } from './guards/partner-auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, title: 'SPOV - Sociedade Portuguesa de Oncologia Veterinária' },
@@ -21,7 +24,8 @@ export const routes: Routes = [
   { path: 'governacao', component: GovernanceComponent, title: 'Governação - SPOV' },
   { path: 'socios', component: MembershipComponent, title: 'Sócios - SPOV' },
   { path: 'socios/aderir', component: PartnerRegistrationComponent, title: 'Aderir à SPOV - Sócios' },
-  { path: 'socios/perfil', component: PartnerProfileComponent, title: 'O meu perfil - Sócios' },
+  { path: 'socios/login', component: PartnerLoginComponent, title: 'Iniciar Sessão - Sócios' },
+  { path: 'socios/perfil', component: PartnerProfileComponent, canActivate: [PartnerAuthGuard], title: 'O meu perfil - Sócios' },
   { path: 'eventos', component: EventsComponent, title: 'Eventos - SPOV' },
   { path: 'eventos/:id', component: EventComponent, title: 'Evento - SPOV' },
   { path: 'contactos', component: ContactsComponent, title: 'Contactos - SPOV' },
@@ -32,7 +36,8 @@ export const routes: Routes = [
   { path: 'admin/login', component: AdminLoginComponent, title: 'Admin Login - SPOV' },
   { path: 'admin', component: AdminLayoutComponent, canActivate: [AuthGuard], children: [
     { path: '', redirectTo: 'eventos', pathMatch: 'full' },
-    { path: 'eventos', component: AdminEventsComponent, title: 'Gerir Eventos - SPOV Admin' }
+    { path: 'eventos', component: AdminEventsComponent, title: 'Gerir Eventos - SPOV Admin' },
+    { path: 'socios', component: AdminPartnersComponent, title: 'Gerir Sócios - SPOV Admin' }
   ] },
   { path: '**', redirectTo: '' }
 ];

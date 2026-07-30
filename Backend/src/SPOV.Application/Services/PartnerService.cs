@@ -115,6 +115,18 @@ public class PartnerService : IPartnerService
         return Result<PartnerProfileDto>.Success(dto);
     }
 
+    public async Task<Result<PartnerDto>> ApproveAsync(int id)
+    {
+        var partner = await _partnerRepository.GetByIdAsync(id);
+        if (partner is null)
+            return Result<PartnerDto>.Failure(Error.NotFound($"Partner with id {id} not found."));
+
+        partner.MembershipStatus = MembershipStatus.Active;
+        await _partnerRepository.UpdateAsync(partner);
+
+        return Result<PartnerDto>.Success(_mapper.Map<PartnerDto>(partner));
+    }
+
     public async Task<Result<PartnerProfileDto>> GetProfileByUserIdAsync(string userId)
     {
         var partner = await _partnerRepository.GetByUserIdAsync(userId);

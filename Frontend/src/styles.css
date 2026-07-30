@@ -101,6 +101,17 @@ img, svg { display: block; max-width: 100%; }
   gap: 0.5rem;
 }
 
+.header-login-btn {
+  flex-shrink: 0;
+}
+
+.nav-logout-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
 .nav-link {
   display: inline-flex;
   align-items: center;

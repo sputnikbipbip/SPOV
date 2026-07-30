@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject, Input } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from './services/auth.service';
 import { eventMeta, navItems } from './content';
 
 @Component({
@@ -64,14 +65,32 @@ export class PageIntroComponent {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
             Instagram
           </a>
+          @if (isLoggedIn) {
+            <a class="nav-link" routerLink="/socios/perfil" routerLinkActive="nav-link-active" (click)="menuOpen = false">Perfil</a>
+            <button type="button" class="nav-link nav-logout-btn" (click)="logout()">Sair</button>
+          } @else {
+            <a class="button button-primary header-login-btn" routerLink="/socios/login" (click)="menuOpen = false">Área Reservada</a>
+          }
         </nav>
       </div>
     </header>
   `
 })
 export class HeaderComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   protected readonly navItems = navItems;
   protected menuOpen = false;
+
+  protected get isLoggedIn(): boolean {
+    return this.authService.isAuthenticated();
+  }
+
+  protected logout() {
+    this.authService.logout();
+    this.router.navigate(['/']);
+  }
 }
 
 @Component({

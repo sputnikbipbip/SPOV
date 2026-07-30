@@ -35,6 +35,20 @@ export interface PaymentDto {
   createdAt: string;
 }
 
+export interface PartnerDto {
+  id: number;
+  userId: string;
+  fullName: string;
+  clinicName: string | null;
+  specialization: string | null;
+  country: string | null;
+  membershipStatus: string;
+  membershipTierId: number | null;
+  membershipTierName: string | null;
+  joinedAt: string;
+  membershipExpiresAt: string | null;
+}
+
 export interface PartnerProfileDto {
   id: number;
   fullName: string;
@@ -69,6 +83,14 @@ export interface PartnerProfileDto {
 export class PartnersService extends ApiService {
   register(data: RegisterPartnerRequest): Promise<PartnerProfileDto> {
     return this.post('/api/partners/register', data);
+  }
+
+  getAll(): Promise<PartnerDto[]> {
+    return this.get('/api/partners');
+  }
+
+  approve(id: number): Promise<PartnerDto> {
+    return this.post(`/api/partners/${id}/approve`, null);
   }
 
   getMyProfile(): Promise<PartnerProfileDto> {

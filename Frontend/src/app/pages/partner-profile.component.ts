@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 import { PageIntroComponent } from '../shared.components';
 import { PartnerProfileDto, PartnersService } from '../services/partners.service';
 
@@ -82,12 +83,16 @@ import { PartnerProfileDto, PartnersService } from '../services/partners.service
             </div>
           }
         </div>
-        <a routerLink="/" class="button button-secondary">Voltar ao início</a>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem;">
+          <a routerLink="/" class="button button-secondary">Voltar ao início</a>
+          <button type="button" class="button button-secondary" style="color:#b42318;border-color:#fcd0cf;" (click)="logout()">Terminar Sessão</button>
+        </div>
       }
     </app-page-intro>
   `
 })
 export class PartnerProfileComponent {
+  private readonly authService = inject(AuthService);
   private readonly partnersService = inject(PartnersService);
   private readonly router = inject(Router);
 
@@ -101,14 +106,21 @@ export class PartnerProfileComponent {
     } catch (e) {
       this.error = 'Não foi possível carregar o perfil. ';
       if (e instanceof Error) {
-        if (e.message.includes('401') || e.message.includes('Unauthorized'))
+        if (e.message.includes('401') || e.message.includes('Unauthorized')) {
           this.error += 'Sessão expirada. Faça login novamente.';
-        else
+          this.authService.logout();
+        } else {
           this.error += e.message;
+        }
       }
     } finally {
       this.loading = false;
     }
+  }
+
+  protected logout() {
+    this.authService.logout();
+    this.router.navigate(['/socios/login']);
   }
 
   protected get statusLabel(): string {

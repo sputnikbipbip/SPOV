@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-const TOKEN_KEY = 'spov_admin_token';
+const TOKEN_KEY = 'spov_token';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -18,7 +18,7 @@ export class ApiService {
 
   protected async get<T>(path: string): Promise<T> {
     try {
-      return await firstValueFrom(this.http.get<T>(`${this.baseUrl}${path}`));
+      return await firstValueFrom(this.http.get<T>(`${this.baseUrl}${path}`, { headers: this.getAuthHeaders() }));
     } catch (e) {
       throw this.handleError(e);
     }
@@ -26,7 +26,7 @@ export class ApiService {
 
   protected async post<T>(path: string, body: unknown): Promise<T> {
     try {
-      return await firstValueFrom(this.http.post<T>(`${this.baseUrl}${path}`, body));
+      return await firstValueFrom(this.http.post<T>(`${this.baseUrl}${path}`, body, { headers: this.getAuthHeaders() }));
     } catch (e) {
       throw this.handleError(e);
     }
