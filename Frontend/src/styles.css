@@ -261,28 +261,6 @@ img, svg { display: block; max-width: 100%; }
   border: 1px solid rgba(17, 17, 17, 0.06);
 }
 
-/* ── Event strip ── */
-
-.event-strip-wrap {
-  margin-top: 2rem;
-}
-
-.event-strip {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr;
-  gap: 1.5rem;
-  padding: 2rem;
-  border-radius: 20px;
-  background: var(--spov-teal);
-  color: var(--spov-white);
-}
-
-.event-strip h2 {
-  margin: 0.35rem 0 0;
-  font-size: clamp(1.3rem, 3vw, 2rem);
-  line-height: 1.15;
-}
-
 /* ── Event Meta (date/time/location) ── */
 
 .event-meta {
@@ -424,7 +402,6 @@ p { line-height: 1.6; }
 .benefit-card,
 .partner-card,
 .legal-card,
-.event-list-card,
 .faq-item,
 .contact-form {
   padding: 1.5rem;
@@ -439,7 +416,6 @@ p { line-height: 1.6; }
 .benefit-card:hover,
 .partner-card:hover,
 .legal-card:hover,
-.event-list-card:hover,
 .faq-item:hover {
   transform: translateY(-4px);
   box-shadow: 0 28px 65px rgba(15, 143, 151, 0.16);
@@ -455,9 +431,211 @@ p { line-height: 1.6; }
   text-align: center;
 }
 
-.event-list-card {
+.events-grid {
   display: grid;
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.event-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--spov-white);
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid transparent;
+  overflow: hidden;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 28px 65px rgba(15, 143, 151, 0.16);
+  border-color: rgba(15, 143, 151, 0.12);
+}
+
+.event-card-past {
+  opacity: 0.7;
+}
+
+.event-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 0;
+}
+
+.event-date-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 64px;
+  padding: 0.5rem;
+  border-radius: 14px;
+  background: var(--spov-teal);
+  color: var(--spov-white);
+  line-height: 1.1;
+}
+
+.event-date-day {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.event-date-month {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.event-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.event-status-upcoming {
+  background: rgba(15, 143, 151, 0.1);
+  color: var(--spov-teal);
+}
+
+.event-status-now {
+  background: rgba(240, 201, 74, 0.2);
+  color: #8a6d00;
+}
+
+.event-status-past {
+  background: var(--spov-soft-gray);
+  color: var(--spov-muted);
+}
+
+.event-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  flex: 1;
+}
+
+.event-card-body h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+
+.event-card-body p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--spov-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.event-card-meta {
+  margin-top: auto;
+}
+
+.event-card .event-meta {
+  grid-template-columns: 1fr;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.event-card .event-meta > div {
+  padding-left: 0;
+  border-left: none;
+  display: flex;
+  gap: 0.35rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+
+.event-card .event-meta span {
+  font-size: 0.75rem;
+  color: var(--spov-muted);
+  margin-bottom: 0;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.event-card .event-meta strong {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.event-card-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.event-card-cta {
+  display: block;
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--spov-teal);
+  border-top: 1px solid var(--spov-line);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.event-card-cta:hover {
+  background: rgba(15, 143, 151, 0.04);
+  color: var(--spov-teal-deep);
+}
+
+.badge-white {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--spov-white);
+}
+
+.badge-outline-inline {
+  border: 1px solid rgba(17, 17, 17, 0.15);
+  color: var(--spov-muted);
+  font-size: 0.78rem;
+}
+
+.badge-yellow-inline {
+  background: rgba(240, 201, 74, 0.2);
+  color: #8a6d00;
+  font-size: 0.78rem;
+}
+
+.event-hero-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.event-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.event-hero-meta strong {
+  font-size: 1rem;
+}
+
+.event-hero-meta span {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.95rem;
 }
 
 /* ── Event Hero ── */
@@ -631,6 +809,72 @@ p { line-height: 1.6; }
   color: var(--spov-muted);
   font-size: 0.9rem;
   line-height: 1.6;
+}
+
+/* ── Contact info card ── */
+
+.contact-info {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.contact-details {
+  display: grid;
+  gap: 1rem;
+}
+
+.contact-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.contact-item svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--spov-teal);
+}
+
+.contact-item strong {
+  display: block;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--spov-muted);
+  margin-bottom: 0.15rem;
+}
+
+.contact-item a,
+.contact-item span {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.contact-item a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.contact-item a:hover {
+  color: var(--spov-teal);
+}
+
+.contact-response-note {
+  margin: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--spov-line);
+  font-size: 0.88rem;
+  color: var(--spov-muted);
+  line-height: 1.5;
+}
+
+/* ── Map ── */
+
+.map-wrap {
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(17, 17, 17, 0.08);
 }
 
 .field-grid {
@@ -1376,8 +1620,8 @@ p { line-height: 1.6; }
   .content-grid,
   .partner-grid,
   .field-grid,
-  .event-strip,
-  .event-meta {
+  .event-meta,
+  .events-grid {
     grid-template-columns: 1fr;
   }
 

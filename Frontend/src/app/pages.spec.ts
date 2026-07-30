@@ -219,7 +219,7 @@ describe('EventsComponent', () => {
     const httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
     const req = httpMock.expectOne('/api/events');
-    req.flush([{ id: 1, title: 'Test Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', ceCredits: null, isMembersOnly: false }]);
+    req.flush([{ id: 1, title: 'Test Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false }]);
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Test Event');
@@ -230,7 +230,7 @@ describe('EventComponent', () => {
   it('shows event hero after load', async () => {
     TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
     const svc = TestBed.inject(EventsService);
-    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', ceCredits: null, isMembersOnly: false });
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false });
     jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
     const fixture = TestBed.createComponent(EventComponent);
     fixture.detectChanges();
@@ -243,7 +243,7 @@ describe('EventComponent', () => {
     localStorage.setItem('spov_token', 'fake-token');
     TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
     const svc = TestBed.inject(EventsService);
-    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', ceCredits: null, isMembersOnly: false });
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false });
     jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
     const fixture = TestBed.createComponent(EventComponent);
     fixture.detectChanges();
@@ -265,6 +265,23 @@ describe('ContactsComponent', () => {
 
   it('renders contact form', () => {
     expect(fixture.nativeElement.textContent).toContain('Contactos');
+  });
+
+  it('shows contact info panel with email', () => {
+    expect(fixture.nativeElement.textContent).toContain('geral.spov@gmail.com');
+  });
+
+  it('shows subject dropdown', () => {
+    const select = fixture.nativeElement.querySelector('select');
+    expect(select).not.toBeNull();
+    expect(select.value).toBe('Contacto');
+  });
+
+  it('renders map section', () => {
+    expect(fixture.nativeElement.textContent).toContain('Localização');
+    const iframe = fixture.nativeElement.querySelector('iframe');
+    expect(iframe).not.toBeNull();
+    expect(iframe.title).toContain('SPOV');
   });
 });
 

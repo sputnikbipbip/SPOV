@@ -92,6 +92,14 @@ describe('EventMetaComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('.event-meta')).toBeTruthy();
   });
+
+  it('renders dynamic data when eventData provided', () => {
+    fixture.componentRef.setInput('eventData', { startDate: '2026-09-12T09:00:00Z', endDate: '2026-09-12T17:00:00Z', location: 'Porto' });
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('12 SET');
+    expect(el.textContent).toContain('Porto');
+  });
 });
 
 describe('HeaderComponent', () => {

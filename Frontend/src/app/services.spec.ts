@@ -147,7 +147,7 @@ describe('EventsService', () => {
   });
 
   it('create sends POST to /api/events', async () => {
-    const data: CreateEventRequest = { title: 'New', description: null, startDate: '2026-01-01', endDate: '2026-01-02', ceCredits: null, isMembersOnly: false };
+    const data: CreateEventRequest = { title: 'New', description: null, startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false };
     const promise = service.create(data);
     const req = httpMock.expectOne('/api/events');
     expect(req.request.method).toBe('POST');
@@ -156,7 +156,7 @@ describe('EventsService', () => {
   });
 
   it('update sends PUT to /api/events/{id}', async () => {
-    const data: UpdateEventRequest = { title: 'Updated', description: null, startDate: '2026-01-01', endDate: '2026-01-02', ceCredits: null, isMembersOnly: false };
+    const data: UpdateEventRequest = { title: 'Updated', description: null, startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false };
     const promise = service.update(1, data);
     const req = httpMock.expectOne('/api/events/1');
     expect(req.request.method).toBe('PUT');

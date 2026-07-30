@@ -7,6 +7,7 @@ export interface EventDto {
   description: string | null;
   startDate: string;
   endDate: string;
+  location: string | null;
   ceCredits: number | null;
   isMembersOnly: boolean;
 }
@@ -16,6 +17,7 @@ export interface CreateEventRequest {
   description: string | null;
   startDate: string;
   endDate: string;
+  location: string | null;
   ceCredits: number | null;
   isMembersOnly: boolean;
 }
@@ -25,6 +27,7 @@ export interface UpdateEventRequest {
   description: string | null;
   startDate: string;
   endDate: string;
+  location: string | null;
   ceCredits: number | null;
   isMembersOnly: boolean;
 }
