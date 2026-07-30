@@ -1,10 +1,10 @@
 export const posterUrl = 'assets/images/spov-poster.png';
 
 export const navItems = [
-  { label: 'Sobre', path: '/sobre' },
-  { label: 'Sócios', path: '/socios' },
-  { label: 'Eventos', path: '/eventos' },
-  { label: 'Contactos', path: '/contactos' }
+  { label: 'Sobre', path: '/about' },
+  { label: 'Sócios', path: '/partners' },
+  { label: 'Eventos', path: '/events' },
+  { label: 'Contactos', path: '/contacts' }
 ];
 
 export const eventMeta = [

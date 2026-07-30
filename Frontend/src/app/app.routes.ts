@@ -19,25 +19,25 @@ import { PartnerAuthGuard } from './guards/partner-auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, title: 'SPOV - Sociedade Portuguesa de Oncologia Veterinária' },
-  { path: 'sobre', component: AboutComponent, title: 'A Sociedade - SPOV' },
-  { path: 'historia', component: HistoryComponent, title: 'História - SPOV' },
-  { path: 'governacao', component: GovernanceComponent, title: 'Governação - SPOV' },
-  { path: 'socios', component: MembershipComponent, title: 'Sócios - SPOV' },
-  { path: 'socios/aderir', component: PartnerRegistrationComponent, title: 'Aderir à SPOV - Sócios' },
-  { path: 'socios/login', component: PartnerLoginComponent, title: 'Iniciar Sessão - Sócios' },
-  { path: 'socios/perfil', component: PartnerProfileComponent, canActivate: [PartnerAuthGuard], title: 'O meu perfil - Sócios' },
-  { path: 'eventos', component: EventsComponent, title: 'Eventos - SPOV' },
-  { path: 'eventos/:id', component: EventComponent, title: 'Evento - SPOV' },
-  { path: 'contactos', component: ContactsComponent, title: 'Contactos - SPOV' },
-  { path: 'obrigado', component: ThankYouComponent, title: 'Pedido enviado - SPOV' },
-  { path: 'privacidade', component: LegalComponent, title: 'Privacidade - SPOV', data: { eyebrow: 'Privacidade', title: 'Privacidade com uma base clara e institucional.', text: 'A SPOV recolhe apenas o essencial, com transparência e consentimento claro.' } },
+  { path: 'about', component: AboutComponent, title: 'A Sociedade - SPOV' },
+  { path: 'history', component: HistoryComponent, title: 'História - SPOV' },
+  { path: 'governance', component: GovernanceComponent, title: 'Governação - SPOV' },
+  { path: 'partners', component: MembershipComponent, title: 'Sócios - SPOV' },
+  { path: 'partners/join', component: PartnerRegistrationComponent, title: 'Aderir à SPOV - Sócios' },
+  { path: 'partners/login', component: PartnerLoginComponent, title: 'Iniciar Sessão - Sócios' },
+  { path: 'partners/profile', component: PartnerProfileComponent, canActivate: [PartnerAuthGuard], title: 'O meu perfil - Sócios' },
+  { path: 'events', component: EventsComponent, title: 'Eventos - SPOV' },
+  { path: 'events/:id', component: EventComponent, title: 'Evento - SPOV' },
+  { path: 'contacts', component: ContactsComponent, title: 'Contactos - SPOV' },
+  { path: 'thank-you', component: ThankYouComponent, title: 'Pedido enviado - SPOV' },
+  { path: 'privacy', component: LegalComponent, title: 'Privacidade - SPOV', data: { eyebrow: 'Privacidade', title: 'Privacidade com uma base clara e institucional.', text: 'A SPOV recolhe apenas o essencial, com transparência e consentimento claro.' } },
   { path: 'cookies', component: LegalComponent, title: 'Cookies - SPOV', data: { eyebrow: 'Cookies', title: 'Uso de cookies explicado de forma simples.', text: 'A SPOV utiliza apenas cookies técnicos e essenciais ao funcionamento do website.' } },
-  { path: 'acessibilidade', component: LegalComponent, title: 'Acessibilidade - SPOV', data: { eyebrow: 'Acessibilidade', title: 'Compromisso com um website acessível e utilizável.', text: 'A SPOV está empenhada em tornar o seu website acessível a todos os utilizadores.' } },
+  { path: 'accessibility', component: LegalComponent, title: 'Acessibilidade - SPOV', data: { eyebrow: 'Acessibilidade', title: 'Compromisso com um website acessível e utilizável.', text: 'A SPOV está empenhada em tornar o seu website acessível a todos os utilizadores.' } },
   { path: 'admin/login', component: AdminLoginComponent, title: 'Admin Login - SPOV' },
   { path: 'admin', component: AdminLayoutComponent, canActivate: [AuthGuard], children: [
-    { path: '', redirectTo: 'eventos', pathMatch: 'full' },
-    { path: 'eventos', component: AdminEventsComponent, title: 'Gerir Eventos - SPOV Admin' },
-    { path: 'socios', component: AdminPartnersComponent, title: 'Gerir Sócios - SPOV Admin' }
+    { path: '', redirectTo: 'events', pathMatch: 'full' },
+    { path: 'events', component: AdminEventsComponent, title: 'Gerir Eventos - SPOV Admin' },
+    { path: 'partners', component: AdminPartnersComponent, title: 'Gerir Sócios - SPOV Admin' }
   ] },
   { path: '**', redirectTo: '' }
 ];

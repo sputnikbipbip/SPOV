@@ -13,8 +13,8 @@ import { RouterLink } from '@angular/router';
           <h1>Ciência, formação e comunidade para a oncologia veterinária.</h1>
           <p>A SPOV reúne profissionais, investigadores e parceiros para promover a atualização científica, a investigação e as melhores práticas na abordagem ao doente oncológico.</p>
           <div class="hero-actions">
-            <a routerLink="/socios" class="button button-primary">Tornar-me sócio</a>
-            <a routerLink="/sobre" class="button button-secondary">Conhecer a SPOV</a>
+            <a routerLink="/partners" class="button button-primary">Tornar-me sócio</a>
+            <a routerLink="/about" class="button button-secondary">Conhecer a SPOV</a>
           </div>
         </div>
         <div class="hero-visual" [style.opacity]="heroImageOpacity">
@@ -53,7 +53,7 @@ import { RouterLink } from '@angular/router';
         <div class="spotlight-copy">
           <span class="eyebrow eyebrow-light">Evento de lançamento</span>
           <p>O primeiro congresso anual da SPOV marcou o arranque oficial das atividades da associação, com cerca de 150 participantes entre veterinários, enfermeiros e estudantes.</p>
-          <a routerLink="/eventos" class="button button-light">Ver eventos</a>
+          <a routerLink="/events" class="button button-light">Ver eventos</a>
         </div>
       </div>
     </section>
@@ -83,7 +83,7 @@ import { RouterLink } from '@angular/router';
         <div class="section-heading"><span class="eyebrow">A SPOV</span><h2>Uma base institucional clara, com foco em rigor e colaboração.</h2></div>
         <div class="split-section">
           <div><p>A SPOV afirma-se como ponto de encontro para profissionais e equipas interessadas em oncologia veterinária e comparada em Portugal. Com cerca de 180 sócios, a associação promove a formação, a investigação e a sensibilização para a oncologia veterinária.</p></div>
-          <div><div class="inline-links"><a routerLink="/sobre">Sobre</a><a routerLink="/historia">História</a><a routerLink="/governacao">Governação</a></div></div>
+          <div><div class="inline-links"><a routerLink="/about">Sobre</a><a routerLink="/history">História</a><a routerLink="/governance">Governação</a></div></div>
         </div>
       </div>
     </section>

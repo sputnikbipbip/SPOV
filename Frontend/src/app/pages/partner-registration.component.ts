@@ -15,7 +15,7 @@ import { PartnersService } from '../services/partners.service';
       @if (success) {
         <div class="success-banner">
           <strong>Registo submetido com sucesso!</strong>
-          <p>Bem-vindo à SPOV. Pode agora <a routerLink="/socios/perfil">consultar o seu perfil</a> ou <a routerLink="/">voltar ao início</a>.</p>
+          <p>Bem-vindo à SPOV. Pode agora <a routerLink="/partners/profile">consultar o seu perfil</a> ou <a routerLink="/">voltar ao início</a>.</p>
         </div>
       }
       @if (!success) {

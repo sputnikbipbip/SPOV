@@ -48,8 +48,8 @@ import { PageIntroComponent } from '../shared.components';
       <h2>Uma sociedade aberta a todos os interessados.</h2>
     </div>
     <div>
-      <p>A SPOV dirige-se a médicos veterinários, enfermeiros veterinários, investigadores, estudantes e todos os profissionais com interesse na oncologia veterinária. A participação é aberta e a adesão pode ser solicitada através do formulário disponível na página de <a routerLink="/socios">Sócios</a>.</p>
-      <div class="inline-links"><a routerLink="/socios">Tornar-me sócio</a><a routerLink="/contactos">Contactar SPOV</a></div>
+      <p>A SPOV dirige-se a médicos veterinários, enfermeiros veterinários, investigadores, estudantes e todos os profissionais com interesse na oncologia veterinária. A participação é aberta e a adesão pode ser solicitada através do formulário disponível na página de <a routerLink="/partners">Sócios</a>.</p>
+      <div class="inline-links"><a routerLink="/partners">Tornar-me sócio</a><a routerLink="/contacts">Contactar SPOV</a></div>
     </div>
   </div>
 </section>

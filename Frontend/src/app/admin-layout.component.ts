@@ -11,8 +11,8 @@ import { AuthService } from './services/auth.service';
       <aside class="admin-sidebar">
         <a routerLink="/admin" class="sidebar-brand">SPOV Admin</a>
         <nav class="sidebar-nav">
-          <a routerLink="/admin/eventos" routerLinkActive="sidebar-active" class="sidebar-link">Eventos</a>
-          <a routerLink="/admin/socios" routerLinkActive="sidebar-active" class="sidebar-link">Sócios</a>
+          <a routerLink="/admin/events" routerLinkActive="sidebar-active" class="sidebar-link">Eventos</a>
+          <a routerLink="/admin/partners" routerLinkActive="sidebar-active" class="sidebar-link">Sócios</a>
         </nav>
         <div class="sidebar-footer">
           <a routerLink="/" class="sidebar-link">Ver Site</a>

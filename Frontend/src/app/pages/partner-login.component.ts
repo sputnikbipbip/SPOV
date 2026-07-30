@@ -34,7 +34,7 @@ import { AuthService } from '../services/auth.service';
 
         <p style="text-align:center;font-size:0.9rem;color:var(--spov-muted);margin:0;">
           Ainda não é sócio?
-          <a routerLink="/socios/aderir" style="color:var(--spov-teal);font-weight:600;text-decoration:underline;">Aderir à SPOV</a>
+          <a routerLink="/partners/join" style="color:var(--spov-teal);font-weight:600;text-decoration:underline;">Aderir à SPOV</a>
         </p>
       </form>
     </div>
@@ -64,7 +64,7 @@ export class PartnerLoginComponent {
     try {
       const { email, password } = this.form.getRawValue();
       await this.authService.login(email, password);
-      await this.router.navigate(['/socios/perfil']);
+      await this.router.navigate(['/partners/profile']);
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Credenciais inválidas. Tente novamente.';
     } finally {

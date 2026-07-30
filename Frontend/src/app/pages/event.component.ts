@@ -12,7 +12,7 @@ import { EventsService, EventDto } from '../services/events.service';
   standalone: true,
   imports: [RouterLink, ReactiveFormsModule, EventMetaComponent, FormFieldComponent, TextareaFieldComponent, FormNotesComponent],
   template: `
-    <section class="section event-hero"><div class="container event-hero-grid"><div><span class="badge badge-yellow">20% desconto sócios AEVPORT</span><h1>{{ event?.title ?? 'Evento' }}</h1><p>{{ event?.description ?? '' }}</p><div class="hero-actions"><a class="button button-light" href="#inscricao">Inscrever-me</a><a routerLink="/socios" class="button button-secondary-light">Tornar-me sócio</a></div></div><div class="event-panel"><span class="eyebrow eyebrow-light">{{ event?.title ?? 'Evento' }}</span><app-event-meta [invert]="true" /><img class="section-image section-image-contrast" [src]="posterUrl" alt="Material visual do evento SPOV"></div></div></section>
+    <section class="section event-hero"><div class="container event-hero-grid"><div><span class="badge badge-yellow">20% desconto sócios AEVPORT</span><h1>{{ event?.title ?? 'Evento' }}</h1><p>{{ event?.description ?? '' }}</p><div class="hero-actions"><a class="button button-light" href="#inscricao">Inscrever-me</a><a routerLink="/partners" class="button button-secondary-light">Tornar-me sócio</a></div></div><div class="event-panel"><span class="eyebrow eyebrow-light">{{ event?.title ?? 'Evento' }}</span><app-event-meta [invert]="true" /><img class="section-image section-image-contrast" [src]="posterUrl" alt="Material visual do evento SPOV"></div></div></section>
     <section class="section"><div class="container content-grid">@for (card of cards; track card.title) { <article class="content-card"><img class="card-image" [src]="posterUrl" [alt]="card.title" loading="lazy" decoding="async"><h3>{{ card.title }}</h3><p>{{ card.text }}</p></article> }</div></section>
     <section class="section section-soft"><div class="container program-section"><div class="section-heading"><span class="eyebrow">Programa</span><h2>Agenda modular com leitura clara.</h2></div><div class="program-list">@for (item of program; track item.time) { <div class="program-item"><strong>{{ item.time }}</strong><span>{{ item.title }}</span></div> }</div></div></section>
     <section class="section"><div class="container"><div class="section-heading"><span class="eyebrow">Oradores e temas</span><h2>Blocos simples para manter a página leve.</h2></div><div class="content-grid">@for (speaker of speakers; track speaker.name) { <article class="content-card"><img class="card-image" [src]="posterUrl" alt="Visual SPOV"><h3>{{ speaker.name }}</h3><p>{{ speaker.role }}</p></article> }</div></div></section>
@@ -55,13 +55,13 @@ export class EventComponent implements OnInit {
   async ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
-      await this.router.navigate(['/eventos']);
+      await this.router.navigate(['/events']);
       return;
     }
     try {
       this.event = await this.eventsService.getById(id);
     } catch {
-      await this.router.navigate(['/eventos']);
+      await this.router.navigate(['/events']);
     }
   }
 
@@ -79,7 +79,7 @@ export class EventComponent implements OnInit {
         subject: 'Inscrição em evento',
         message: `Evento: ${this.event?.title ?? '—'}\nObservações: ${notes}`
       });
-      await this.router.navigate(['/obrigado']);
+      await this.router.navigate(['/thank-you']);
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Ocorreu um erro. Tente novamente.';
     } finally {

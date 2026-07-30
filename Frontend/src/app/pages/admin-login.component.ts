@@ -48,7 +48,7 @@ export class AdminLoginComponent {
     try {
       const { email, password } = this.form.getRawValue();
       await this.auth.login(email, password);
-      await this.router.navigate(['/admin/eventos']);
+      await this.router.navigate(['/admin/events']);
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Credenciais inválidas.';
     } finally {

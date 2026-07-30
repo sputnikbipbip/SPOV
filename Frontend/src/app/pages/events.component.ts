@@ -11,7 +11,7 @@ import { EventsService, EventDto } from '../services/events.service';
   template: `<app-page-intro eyebrow="Eventos" title="Eventos organizados para leitura imediata e decisão rápida." text="Data, hora, local e benefícios aparecem logo no primeiro ecrã, mantendo a lógica dos posts da SPOV.">
     @if (events.length === 0) { <p class="empty-state">Ainda não há eventos agendados.</p> }
     @for (event of events; track event.id) {
-      <article class="event-list-card"><img class="section-image" [src]="posterUrl" alt="Identidade visual do evento SPOV"><div><span class="badge badge-dark">{{ event.title }}</span><h3>{{ event.title }}</h3><p>{{ event.description }}</p></div><app-event-meta /><a [routerLink]="'/eventos/' + event.id" class="button button-primary">Mais informação</a></article>
+      <article class="event-list-card"><img class="section-image" [src]="posterUrl" alt="Identidade visual do evento SPOV"><div><span class="badge badge-dark">{{ event.title }}</span><h3>{{ event.title }}</h3><p>{{ event.description }}</p></div><app-event-meta /><a [routerLink]="'/events/' + event.id" class="button button-primary">Mais informação</a></article>
     }
   </app-page-intro>`
 })

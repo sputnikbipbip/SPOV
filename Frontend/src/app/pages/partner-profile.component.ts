@@ -120,7 +120,7 @@ export class PartnerProfileComponent {
 
   protected logout() {
     this.authService.logout();
-    this.router.navigate(['/socios/login']);
+    this.router.navigate(['/partners/login']);
   }
 
   protected get statusLabel(): string {

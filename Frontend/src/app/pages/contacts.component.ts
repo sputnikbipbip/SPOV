@@ -36,7 +36,7 @@ export class ContactsComponent {
     try {
       const { name, email, message } = this.form.getRawValue();
       await this.contactsService.send({ name, email, subject: 'Contacto', message });
-      await this.router.navigate(['/obrigado']);
+      await this.router.navigate(['/thank-you']);
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Ocorreu um erro. Tente novamente.';
     } finally {

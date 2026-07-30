@@ -11,6 +11,6 @@ export class PartnerAuthGuard implements CanActivate {
 
   canActivate(): boolean | UrlTree {
     if (this.auth.isAuthenticated()) return true;
-    return this.router.parseUrl('/socios/login');
+    return this.router.parseUrl('/partners/login');
   }
 }
