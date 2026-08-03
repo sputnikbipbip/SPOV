@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -9,6 +9,12 @@ export interface LoginResponse {
   accessToken: string;
   tokenType: string;
   expiresIn: number;
+}
+
+export interface CurrentUser {
+  id: string;
+  email: string;
+  roles: string[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -30,5 +36,19 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return !!localStorage.getItem(TOKEN_KEY);
+  }
+
+  async getCurrentUser(): Promise<CurrentUser | null> {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return null;
+    try {
+      return await firstValueFrom(
+        this.http.get<CurrentUser>(`${this.baseUrl}/api/me`, {
+          headers: new HttpHeaders({ Authorization: `Bearer ${token}` })
+        })
+      );
+    } catch {
+      return null;
+    }
   }
 }

@@ -9,8 +9,10 @@ export class AuthGuard implements CanActivate {
     private readonly router: Router
   ) {}
 
-  canActivate(): boolean | UrlTree {
-    if (this.auth.isAuthenticated()) return true;
+  async canActivate(): Promise<boolean | UrlTree> {
+    if (!this.auth.isAuthenticated()) return this.router.parseUrl('/admin/login');
+    const user = await this.auth.getCurrentUser();
+    if (user && user.roles.includes('Administrator')) return true;
     return this.router.parseUrl('/admin/login');
   }
 }

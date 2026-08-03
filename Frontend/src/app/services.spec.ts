@@ -47,6 +47,29 @@ describe('AuthService', () => {
   it('isAuthenticated returns false when no token', () => {
     expect(service.isAuthenticated()).toBe(false);
   });
+
+  it('getCurrentUser returns user with auth header', async () => {
+    localStorage.setItem('spov_token', 'token-123');
+    const promise = service.getCurrentUser();
+    const req = httpMock.expectOne('/api/me');
+    expect(req.request.headers.get('Authorization')).toBe('Bearer token-123');
+    req.flush({ id: '1', email: 'admin@spov.pt', roles: ['Administrator'] });
+    const result = await promise;
+    expect(result).toEqual({ id: '1', email: 'admin@spov.pt', roles: ['Administrator'] });
+  });
+
+  it('getCurrentUser returns null when no token', async () => {
+    const result = await service.getCurrentUser();
+    expect(result).toBeNull();
+  });
+
+  it('getCurrentUser returns null on error', async () => {
+    localStorage.setItem('spov_token', 'token-123');
+    const promise = service.getCurrentUser();
+    httpMock.expectOne('/api/me').flush({ error: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+    const result = await promise;
+    expect(result).toBeNull();
+  });
 });
 
 describe('PartnersService', () => {
