@@ -101,8 +101,10 @@ docker/secrets/
 # Custom ignore for study materials
 BUILD_ARTIFACTS.md
 
-# Junie memory files
-.junie/memory/
-
 # Agent instructions (local to each developer)
 AGENTS.md
+
+# opencode configuration and rules
+opencode.json
+.opencode/rules/
+docs/opencode-rules.md
