@@ -1,5 +1,7 @@
-import { Component, HostListener } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, HostListener, inject } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { startWith, map } from 'rxjs';
 import { FooterComponent, HeaderComponent } from './shared.components';
 
 @Component({
@@ -9,9 +11,13 @@ import { FooterComponent, HeaderComponent } from './shared.components';
   template: `
     <div class="site-shell">
       <a class="skip-link" href="#main-content">Saltar para o conteudo</a>
-      <app-header />
+      @if (!isAdminRoute()) {
+        <app-header />
+      }
       <main id="main-content"><router-outlet /></main>
-      <app-footer />
+      @if (!isAdminRoute()) {
+        <app-footer />
+      }
       <button type="button" class="scroll-to-top" [class.visible]="showScrollTop" aria-label="Voltar ao topo" (click)="scrollTop()">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" /></svg>
       </button>
@@ -19,6 +25,15 @@ import { FooterComponent, HeaderComponent } from './shared.components';
   `
 })
 export class AppComponent {
+  private readonly router = inject(Router);
+
+  protected readonly isAdminRoute = toSignal(
+    this.router.events.pipe(
+      startWith(null),
+      map(() => this.router.url.startsWith('/admin'))
+    )
+  );
+
   protected showScrollTop = false;
 
   @HostListener('window:scroll')
