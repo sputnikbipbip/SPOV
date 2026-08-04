@@ -1,11 +1,13 @@
+using SPOV.Application.Common;
 using SPOV.Application.DTOs.Partners;
 using SPOV.Domain.Common;
+using SPOV.Domain.Specifications;
 
 namespace SPOV.Application.Services;
 
 public interface IPartnerService
 {
-    Task<Result<List<PartnerDto>>> GetAllAsync();
+    Task<Result<PagedResponse<PartnerDto>>> GetAllAsync(QueryFilter queryFilter, CancellationToken ct = default);
     Task<Result<PartnerDto?>> GetByIdAsync(int id);
     Task<Result<PartnerDto?>> GetByUserIdAsync(string userId);
     Task<Result<PartnerDto>> CreateAsync(string userId, string fullName);

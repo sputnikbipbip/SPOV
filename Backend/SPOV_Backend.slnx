@@ -1,7 +1,9 @@
 <Solution>
   <Folder Name="/Solution Items/">
-    <File Path=".editorconfig" />
-    <File Path="compose.yaml" />
+    <File Path="../.editorconfig" />
+    <File Path="../compose.yaml" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
   </Folder>
   <Project Path="SPOV_Backend.Tests/SPOV_Backend.Tests.csproj" />
   <Project Path="src/SPOV.Application/SPOV.Application.csproj" />

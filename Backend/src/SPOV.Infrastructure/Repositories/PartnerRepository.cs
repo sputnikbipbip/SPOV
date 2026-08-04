@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using SPOV.Application.Common;
 using SPOV.Domain.Entities;
 using SPOV.Domain.Interfaces;
+using SPOV.Domain.Specifications;
 using SPOV.Infrastructure.Data;
 
 namespace SPOV.Infrastructure.Repositories;
@@ -14,9 +16,23 @@ public class PartnerRepository : IPartnerRepository
         _db = db;
     }
 
-    public async Task<List<Partner>> GetAllAsync()
+    public async Task<PagedResult<Partner>> GetAllAsync(QueryFilter queryFilter, CancellationToken ct)
     {
-        return await _db.Partners.Include(p => p.MembershipTier).ToListAsync();
+        var pageNumber = Math.Max(1, queryFilter.PageNumber);
+        var pageSize = Math.Clamp(queryFilter.PageSize, 1, 50);
+
+        var query = _db.Partners
+            .AsNoTracking()
+            .Include(p => p.MembershipTier)
+            .ApplySearch(queryFilter.Search)
+            .ApplySort(queryFilter.SortBy);
+
+        var totalRecords = await query.CountAsync(ct);
+        var items = await query
+            .ApplyPagination(pageNumber, pageSize)
+            .ToListAsync(ct);
+
+        return new PagedResult<Partner>(items, totalRecords, pageNumber, pageSize);
     }
 
     public async Task<Partner?> GetByIdAsync(int id)

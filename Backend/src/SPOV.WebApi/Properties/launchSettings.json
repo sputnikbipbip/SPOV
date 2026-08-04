@@ -14,8 +14,9 @@
     "https": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "https://localhost:7062;http://localhost:8080",
+      "launchBrowser": true,
+      "launchUrl": "scalar/v1",
+      "applicationUrl": "http://localhost:8080",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

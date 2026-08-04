@@ -1,9 +1,13 @@
+using SPOV.Domain.Common;
 using SPOV.Domain.Enums;
 
 namespace SPOV.Domain.Entities;
 
-public class Partner
+public class Partner : ISearchable
 {
+    public static IReadOnlyCollection<string> SearchableProperties { get; } =
+        [nameof(FullName), nameof(Email), nameof(Phone), nameof(TaxId), nameof(City), nameof(Country), nameof(Profession), nameof(CompanyName)];
+
     public int Id { get; set; }
     public string UserId { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;

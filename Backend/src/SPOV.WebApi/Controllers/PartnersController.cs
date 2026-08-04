@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SPOV.Application.DTOs.Partners;
 using SPOV.Application.Services;
+using SPOV.Domain.Specifications;
 using SPOV.WebApi.Extensions;
 using SPOV.Application.DTOs.EventRegistrations;
 
@@ -23,9 +24,9 @@ public class PartnersController : ControllerBase
 
     [Authorize(Policy = "AdminOnly")]
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] QueryFilter filter)
     {
-        var result = await _partnerService.GetAllAsync();
+        var result = await _partnerService.GetAllAsync(filter, HttpContext.RequestAborted);
         return result.ToActionResult();
     }
 

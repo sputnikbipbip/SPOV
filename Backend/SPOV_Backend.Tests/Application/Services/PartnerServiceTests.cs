@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentAssertions;
 using NSubstitute;
+using SPOV.Application.Common;
 using SPOV.Application.Common.Interfaces;
 using SPOV.Application.DTOs.Partners;
 using SPOV.Application.DTOs.Payments;
@@ -10,6 +11,7 @@ using SPOV.Domain.Common;
 using SPOV.Domain.Entities;
 using SPOV.Domain.Enums;
 using SPOV.Domain.Interfaces;
+using SPOV.Domain.Specifications;
 using Xunit;
 
 namespace SPOV_Backend.Tests.Application.Services;
@@ -74,12 +76,16 @@ public sealed class PartnerServiceTests
             new() { Id = 1, FullName = "Partner A", Email = "a@spov.pt", MembershipStatus = MembershipStatus.Pending, JoinedAt = DateTime.UtcNow },
             new() { Id = 2, FullName = "Partner B", Email = "b@spov.pt", MembershipStatus = MembershipStatus.Active, JoinedAt = DateTime.UtcNow }
         };
-        _partnerRepository.GetAllAsync().Returns(partners);
+        _partnerRepository.GetAllAsync(Arg.Any<QueryFilter>(), Arg.Any<CancellationToken>())
+            .Returns(new PagedResult<Partner>(partners, partners.Count, 1, 10));
 
-        var result = await _sut.GetAllAsync();
+        var result = await _sut.GetAllAsync(new QueryFilter(), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Data.Should().HaveCount(2);
+        result.Data.Should().NotBeNull();
+        result.Data!.Data.Should().HaveCount(2);
+        result.Data.TotalRecords.Should().Be(2);
+        result.Data.TotalPages.Should().Be(1);
     }
 
     [Fact]

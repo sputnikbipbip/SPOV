@@ -256,13 +256,55 @@ These endpoints manage SPOV members (sócios).
 | Method | Path | Auth | Policy | Who can call | Description |
 |--------|------|------|--------|-------------|-------------|
 | POST | `/api/partners/register` | No | Public | **Anyone** | **Register as a new partner.** Creates an ApplicationUser with Partner role AND a Partner profile with status "Pending". Takes name, email, password, phone, and optional fields. |
-| GET | `/api/partners` | Yes | AdminOnly | **Admin only** | List all partners with their status. |
+| GET | `/api/partners` | Yes | AdminOnly | **Admin only** | **Paginated list of all partners.** Supports `PageNumber`, `PageSize` (max 50), `SortBy`, and `Search` query params. Returns a `PagedResponse`. |
 | GET | `/api/partners/{id}` | Yes | AdminOnly | **Admin only** | Get a specific partner by ID. |
 | GET | `/api/partners/me` | Yes | [Authorize] | **Any authenticated user** | Get your own partner profile (you must have a Partner entity linked to your user). |
 | GET | `/api/partners/my-profile` | Yes | [Authorize] | **Any authenticated user** | Get your full partner profile including payment history. |
 | PUT | `/api/partners/me` | Yes | [Authorize] | **Any authenticated user** | **Update your own profile.** Editable fields: FullName, Phone, TaxId, BirthDate, Address, City, ZipCode, Country, AcademicQualifications, ProfessionalCardNumber, Profession, CompanyName, CompanyPhone, Observations. |
 | GET | `/api/partners/me/registrations` | Yes | [Authorize] | **Any authenticated user** | Get your event registrations (includes event title and dates). |
 | POST | `/api/partners/{id}/approve` | Yes | AdminOnly | **Admin only** | **Approve a pending partner.** Changes their MembershipStatus from "Pending" to "Active". |
+
+**Detailed: List all partners (`GET /api/partners`):**
+
+The response is paginated and searchable.
+
+**Query parameters:**
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `pageNumber` | `1` | 1-based page number. |
+| `pageSize` | `10` | Items per page (clamped to `1..50`). |
+| `sortBy` | — | `"property [asc\|desc]"`, comma-separated for multiple keys, e.g. `sortBy=joinedAt desc, fullName`. Unknown properties are ignored. |
+| `search` | — | Case-insensitive substring match across FullName, Email, Phone, TaxId, City, Country, Profession, and CompanyName. |
+
+**Example:**
+```bash
+curl "http://localhost:8080/api/partners?pageNumber=2&pageSize=10&sortBy=joinedAt%20desc&search=doe" \
+  -H "Authorization: Bearer eyJhbGciOiJ..."
+```
+
+**Response (`200 OK`):**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "userId": "00000000-0000-0000-0000-000000000000",
+      "fullName": "John Doe",
+      "membershipStatus": "Active",
+      "membershipTierId": 2,
+      "membershipTierName": "Platinum",
+      "joinedAt": "2026-07-01T10:00:00Z"
+    }
+  ],
+  "pageNumber": 2,
+  "pageSize": 10,
+  "totalPages": 3,
+  "totalRecords": 25,
+  "hasNextPage": true,
+  "hasPreviousPage": true
+}
+```
 
 **Detailed: Register a new partner (`POST /api/partners/register`):**
 

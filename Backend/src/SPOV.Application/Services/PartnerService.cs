@@ -1,4 +1,5 @@
 using AutoMapper;
+using SPOV.Application.Common;
 using SPOV.Application.Common.Interfaces;
 using SPOV.Application.DTOs.Partners;
 using SPOV.Application.DTOs.Payments;
@@ -6,6 +7,7 @@ using SPOV.Domain.Common;
 using SPOV.Domain.Entities;
 using SPOV.Domain.Enums;
 using SPOV.Domain.Interfaces;
+using SPOV.Domain.Specifications;
 
 namespace SPOV.Application.Services;
 
@@ -28,10 +30,19 @@ public class PartnerService : IPartnerService
         _mapper = mapper;
     }
 
-    public async Task<Result<List<PartnerDto>>> GetAllAsync()
+    public async Task<Result<PagedResponse<PartnerDto>>> GetAllAsync(QueryFilter queryFilter, CancellationToken ct)
     {
-        var partners = await _partnerRepository.GetAllAsync();
-        return Result<List<PartnerDto>>.Success(_mapper.Map<List<PartnerDto>>(partners));
+        var paged = await _partnerRepository.GetAllAsync(queryFilter, ct);
+        var items = _mapper.Map<List<PartnerDto>>(paged.Items);
+
+        return Result<PagedResponse<PartnerDto>>.Success(new PagedResponse<PartnerDto>
+        {
+            Data = items,
+            PageNumber = paged.PageNumber,
+            PageSize = paged.PageSize,
+            TotalRecords = paged.TotalRecords,
+            TotalPages = (int)Math.Ceiling(paged.TotalRecords / (double)paged.PageSize)
+        });
     }
 
     public async Task<Result<PartnerDto?>> GetByIdAsync(int id)
