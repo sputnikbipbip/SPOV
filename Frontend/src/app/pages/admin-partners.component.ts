@@ -17,20 +17,8 @@ import { PartnersService, PartnerDto, PartnerProfileDto } from '../services/part
       min-height: 40px; padding: 0.4rem 0.75rem; font-size: 0.9rem;
       border: 1px solid var(--spov-line); border-radius: 8px; background: var(--spov-white); color: var(--spov-ink);
     }
-    .pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 1.5rem 0; }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 1rem 0; position: sticky; bottom: 0; background: #f5f7f7; z-index: 5; margin-top: 1rem; }
     .pagination-info { font-size: 0.9rem; color: var(--spov-muted); }
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5);
-      display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;
-    }
-    .modal {
-      background: var(--spov-white); border-radius: 12px; max-width: 720px; width: 100%;
-      max-height: 85vh; overflow: auto; padding: 1.5rem; position: relative;
-    }
-    .modal-close {
-      position: absolute; top: 0.5rem; right: 0.75rem; background: none; border: none;
-      font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--spov-muted);
-    }
     .text-danger { color: #b42318; font-weight: 600; }
     .text-warning { color: #b45309; font-weight: 600; }
   `,
@@ -177,7 +165,7 @@ export class AdminPartnersComponent implements OnInit {
   protected error = '';
   protected success = '';
   protected pageNumber = 1;
-  protected pageSize = 10;
+  protected pageSize = 9;
   protected totalPages = 1;
   protected totalRecords = 0;
   protected searchTerm = '';

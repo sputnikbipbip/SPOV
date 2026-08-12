@@ -746,7 +746,7 @@ describe('AdminPartnersComponent', () => {
     fixture.detectChanges();
     fixture.nativeElement.querySelector('.admin-filters button').click();
     await microtaskTick();
-    expect(svc.getAll).toHaveBeenCalledWith({ pageNumber: 1, pageSize: 10, search: 'John', membershipStatus: 'Pending' });
+    expect(svc.getAll).toHaveBeenCalledWith({ pageNumber: 1, pageSize: 9, search: 'John', membershipStatus: 'Pending' });
   });
 
   it('reloads when status select changes', async () => {
@@ -762,7 +762,7 @@ describe('AdminPartnersComponent', () => {
     select.value = 'Active';
     select.dispatchEvent(new Event('change'));
     await microtaskTick();
-    expect(svc.getAll).toHaveBeenCalledWith({ pageNumber: 1, pageSize: 10, search: undefined, membershipStatus: 'Active' });
+    expect(svc.getAll).toHaveBeenCalledWith({ pageNumber: 1, pageSize: 9, search: undefined, membershipStatus: 'Active' });
   });
 
   it('opens details modal with profile info', async () => {
