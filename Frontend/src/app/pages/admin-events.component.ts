@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest } from '../services/events.service';
+import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest, EventRegistrationDto } from '../services/events.service';
 
 @Component({
   selector: 'app-admin-events',
@@ -83,6 +83,7 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest } from 
                 @if (event.isMembersOnly) { <span class="badge badge-yellow">Sócios</span> }
               </div>
               <div class="event-row-actions">
+                <button type="button" class="button button-secondary" (click)="openRegistrations(event)">Inscrições</button>
                 <button type="button" class="button button-secondary" (click)="startEdit(event)">Editar</button>
                 <button type="button" class="button button-secondary button-danger" (click)="confirmDelete(event)">Eliminar</button>
               </div>
@@ -91,6 +92,31 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest } from 
         </div>
       }
     </div>
+
+    @if (registrationsEvent) {
+      <div class="modal-overlay">
+        <div class="modal">
+          <button type="button" class="modal-close" (click)="closeRegistrations()" aria-label="Fechar">×</button>
+          <h3>Inscrições — {{ registrationsEvent.title }}</h3>
+          @if (registrationsError) { <div class="form-error-banner">{{ registrationsError }}</div> }
+          @if (registrationsLoading) { <p class="empty-state">A carregar inscrições…</p> }
+          @else if (registrations.length === 0) { <p class="empty-state">Sem inscrições registadas.</p> }
+          @else {
+            <div class="registration-list">
+              @for (r of registrations; track r.id) {
+                <div class="registration-row">
+                  <div>
+                    <strong>{{ r.partnerFullName || 'Sócio #' + r.partnerId }}</strong>
+                    <span class="event-row-dates">{{ r.partnerEmail }}</span>
+                  </div>
+                  <span class="event-row-dates">{{ r.registeredAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
   `
 })
 export class AdminEventsComponent implements OnInit {
@@ -102,6 +128,10 @@ export class AdminEventsComponent implements OnInit {
   protected saving = false;
   protected error = '';
   protected success = '';
+  protected registrations: EventRegistrationDto[] = [];
+  protected registrationsEvent: EventDto | null = null;
+  protected registrationsLoading = false;
+  protected registrationsError = '';
 
   protected readonly newForm = new FormGroup({
     title: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -265,5 +295,25 @@ export class AdminEventsComponent implements OnInit {
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Erro ao eliminar evento.';
     }
+  }
+
+  async openRegistrations(event: EventDto) {
+    this.registrationsEvent = event;
+    this.registrations = [];
+    this.registrationsLoading = true;
+    this.registrationsError = '';
+    try {
+      this.registrations = await this.eventsService.getRegistrations(event.id);
+    } catch (e) {
+      this.registrationsError = e instanceof Error ? e.message : 'Erro ao carregar inscrições.';
+    } finally {
+      this.registrationsLoading = false;
+    }
+  }
+
+  closeRegistrations() {
+    this.registrationsEvent = null;
+    this.registrations = [];
+    this.registrationsError = '';
   }
 }

@@ -282,6 +282,16 @@ describe('EventsService', () => {
     expect(result.length).toBe(1);
     expect(result[0].eventTitle).toBe('Test Event');
   });
+
+  it('getRegistrations sends GET to /api/events/{id}/registrations', async () => {
+    const promise = service.getRegistrations(4);
+    const req = httpMock.expectOne('/api/events/4/registrations');
+    expect(req.request.method).toBe('GET');
+    req.flush([{ id: 1, eventId: 4, partnerId: 9, registeredAt: '2026-01-01', partnerFullName: 'Maria Silva', partnerEmail: 'maria@test.com' }]);
+    const result = await promise;
+    expect(result.length).toBe(1);
+    expect(result[0].partnerFullName).toBe('Maria Silva');
+  });
 });
 
 describe('ContactsService', () => {

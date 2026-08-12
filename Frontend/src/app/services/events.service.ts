@@ -43,6 +43,15 @@ export interface PartnerRegistrationDto {
   eventEndDate: string;
 }
 
+export interface EventRegistrationDto {
+  id: number;
+  eventId: number;
+  partnerId: number;
+  registeredAt: string;
+  partnerFullName: string | null;
+  partnerEmail: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EventsService extends ApiService {
   getAll(filter?: QueryFilter): Promise<PagedResponse<EventDto>> {
@@ -76,6 +85,10 @@ export class EventsService extends ApiService {
 
   getMyRegistrations(): Promise<PartnerRegistrationDto[]> {
     return this.get('/api/partners/me/registrations');
+  }
+
+  getRegistrations(eventId: number): Promise<EventRegistrationDto[]> {
+    return this.get(`/api/events/${eventId}/registrations`);
   }
 
   cancelRegistration(eventId: number): Promise<void> {

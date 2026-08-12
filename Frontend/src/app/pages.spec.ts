@@ -617,6 +617,27 @@ describe('AdminEventsComponent', () => {
     await microtaskTick();
     expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({ title: 'New Event', imageData: 'data:image/png;base64,abc' }));
   });
+
+  it('opens registrations modal and renders registrations', async () => {
+    TestBed.configureTestingModule({ imports: [AdminEventsComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(eventsPaged);
+    jest.spyOn(svc, 'getRegistrations').mockResolvedValue([
+      { id: 1, eventId: 1, partnerId: 9, registeredAt: '2026-01-01T10:00:00', partnerFullName: 'Maria Silva', partnerEmail: 'maria@test.com' }
+    ]);
+    const fixture = TestBed.createComponent(AdminEventsComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.event-row-actions button'));
+    const registrationsButton = buttons.find((b: HTMLButtonElement) => b.textContent?.trim() === 'Inscrições') as HTMLButtonElement;
+    registrationsButton.click();
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.modal')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Maria Silva');
+    expect(fixture.nativeElement.textContent).toContain('maria@test.com');
+  });
 });
 
 describe('AdminPartnersComponent', () => {
