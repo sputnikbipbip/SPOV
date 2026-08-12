@@ -12,7 +12,7 @@ import { ContactsService } from '../services/contacts.service';
   standalone: true,
   imports: [RouterLink, ReactiveFormsModule, PageIntroComponent, FormFieldComponent, FormNotesComponent],
   template: `
-    <app-page-intro eyebrow="Sócios" title="Vantagens claras para quem quer participar, aprender e acompanhar a atividade da SPOV." text="A adesão deve ser simples, direta e alinhada com a visibilidade dos benefícios.">
+    <app-page-intro class="page-intro--spaced" eyebrow="Sócios" title="Vantagens claras para quem quer participar, aprender e acompanhar a atividade da SPOV." text="A adesão deve ser simples, direta e alinhada com a visibilidade dos benefícios.">
       @if (error) { <div class="form-error-banner">{{ error }}</div> }
       <div style="margin-bottom: 2rem; text-align: center;">
         <a routerLink="/partners/join" class="button button-primary">Aderir à SPOV</a>

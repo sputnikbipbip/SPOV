@@ -59,6 +59,13 @@ describe('AboutComponent', () => {
   it('renders page title', () => {
     expect(fixture.nativeElement.textContent).toContain('A Sociedade');
   });
+
+  it('links to history and governance pages', () => {
+    const historyLink = fixture.nativeElement.querySelector('a[routerLink="/history"]') as HTMLAnchorElement;
+    const governanceLink = fixture.nativeElement.querySelector('a[routerLink="/governance"]') as HTMLAnchorElement;
+    expect(historyLink).not.toBeNull();
+    expect(governanceLink).not.toBeNull();
+  });
 });
 
 describe('HistoryComponent', () => {
@@ -427,6 +434,19 @@ describe('LegalComponent', () => {
     const fixture = TestBed.createComponent(LegalComponent);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Privacidade');
+  });
+
+  it('adds extra bottom spacing before the footer', () => {
+    TestBed.configureTestingModule({
+      imports: [LegalComponent],
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { data: { eyebrow: 'Privacidade', title: 'Política de Privacidade', text: 'Saiba como tratamos os seus dados.' } } } },
+      ],
+    });
+    const fixture = TestBed.createComponent(LegalComponent);
+    fixture.detectChanges();
+    const intro = fixture.nativeElement.querySelector('app-page-intro') as HTMLElement;
+    expect(intro.classList.contains('page-intro--spaced')).toBe(true);
   });
 });
 

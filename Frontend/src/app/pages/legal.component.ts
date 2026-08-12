@@ -7,7 +7,7 @@ import { PageIntroComponent } from '../shared.components';
   standalone: true,
   imports: [PageIntroComponent],
   template: `
-<app-page-intro [eyebrow]="data['eyebrow']" [title]="data['title']" [text]="data['text']">
+<app-page-intro class="page-intro--spaced" [eyebrow]="data['eyebrow']" [title]="data['title']" [text]="data['text']">
   @if (data['eyebrow'] === 'Privacidade') {
     <div class="legal-card">
       <p>A Sociedade Portuguesa de Oncologia Veterinária (SPOV) respeita a privacidade dos seus associados, parceiros e visitantes do website.</p>

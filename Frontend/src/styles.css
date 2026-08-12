@@ -312,6 +312,10 @@ img, svg { display: block; max-width: 100%; }
   background: var(--spov-soft-gray);
 }
 
+app-page-intro.page-intro--spaced .page-intro {
+  padding-bottom: 4rem;
+}
+
 .section-teal {
   background: var(--spov-teal);
   color: var(--spov-white);

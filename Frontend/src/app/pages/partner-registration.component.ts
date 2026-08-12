@@ -10,7 +10,7 @@ import { PartnersService } from '../services/partners.service';
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink, PageIntroComponent, FormFieldComponent, FormNotesComponent],
   template: `
-    <app-page-intro eyebrow="Sócios" title="Aderir à SPOV" text="Será com prazer que o receberemos como sócio da SPOV. Preencha o formulário e proceda ao pagamento da jóia e respetiva quota.">
+    <app-page-intro class="page-intro--spaced" eyebrow="Sócios" title="Aderir à SPOV" text="Será com prazer que o receberemos como sócio da SPOV. Preencha o formulário e proceda ao pagamento da jóia e respetiva quota.">
       @if (error) { <div class="form-error-banner">{{ error }}</div> }
       @if (success) {
         <div class="success-banner">

@@ -64,6 +64,24 @@ import { PageIntroComponent } from '../shared.components';
     </div>
   </div>
 </section>
+
+<section class="section section-soft">
+  <div class="container">
+    <div class="section-heading"><span class="eyebrow">Conhecer a SPOV</span><h2>História e quem a lidera.</h2></div>
+    <div class="split-section">
+      <article class="content-card">
+        <h3>História da SPOV</h3>
+        <p>Do primeiro dia aos dias de hoje: a fundação, os marcos e as realizações da Sociedade.</p>
+        <div class="inline-links"><a routerLink="/history">Conhecer a História</a></div>
+      </article>
+      <article class="content-card">
+        <h3>Governação e direção</h3>
+        <p>Conheça a estrutura de governação da SPOV e a equipa que lidera a associação.</p>
+        <div class="inline-links"><a routerLink="/governance">Conhecer a Direção</a></div>
+      </article>
+    </div>
+  </div>
+</section>
   `
 })
 export class AboutComponent {
