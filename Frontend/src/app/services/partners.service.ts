@@ -98,10 +98,44 @@ export interface UpdatePartnerProfileRequest {
   observations?: string;
 }
 
+export interface CreatePartnerRequest {
+  fullName: string;
+  email: string;
+  phone: string;
+  partnerType: string;
+  taxId?: string;
+  birthDate?: string;
+  address?: string;
+  city?: string;
+  zipCode?: string;
+  country?: string;
+  academicQualifications?: string;
+  professionalCardNumber?: string;
+  profession?: string;
+  companyName?: string;
+  companyPhone?: string;
+  observations?: string;
+  joinedAt: string;
+  membershipExpiresAt?: string;
+  membershipTierId?: number;
+  initiationFee: number;
+  quotaValue: number;
+  totalAmount: number;
+}
+
+export interface CreatePartnerResponse {
+  partner: PartnerProfileDto;
+  temporaryPassword: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PartnersService extends ApiService {
   register(data: RegisterPartnerRequest): Promise<PartnerProfileDto> {
     return this.post('/api/partners/register', data);
+  }
+
+  createPartner(data: CreatePartnerRequest): Promise<CreatePartnerResponse> {
+    return this.post('/api/partners', data);
   }
 
   getAll(filter?: QueryFilter): Promise<PagedResponse<PartnerDto>> {

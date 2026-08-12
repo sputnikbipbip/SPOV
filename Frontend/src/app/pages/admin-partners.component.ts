@@ -1,12 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { PartnersService, PartnerDto, PartnerProfileDto } from '../services/partners.service';
+import { FormsModule, ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
+import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } from '../services/partners.service';
 
 @Component({
   selector: 'app-admin-partners',
   standalone: true,
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, ReactiveFormsModule],
   styles: `
     .admin-filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; padding: 1rem 0; }
     .admin-filters input[type="search"] {
@@ -25,7 +25,10 @@ import { PartnersService, PartnerDto, PartnerProfileDto } from '../services/part
   template: `
     <div class="admin-header">
       <h2>Sócios</h2>
-      <span class="badge badge-dark" style="font-size:0.85rem;">{{ totalRecords }} total</span>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span class="badge badge-dark" style="font-size:0.85rem;">{{ totalRecords }} total</span>
+        <button type="button" class="button button-primary" (click)="openCreate()">Novo Sócio</button>
+      </div>
     </div>
 
     @if (error) { <div class="form-error-banner">{{ error }}</div> }
@@ -157,6 +160,62 @@ import { PartnersService, PartnerDto, PartnerProfileDto } from '../services/part
         </div>
       </div>
     }
+
+    @if (showCreate) {
+      <div class="modal-overlay">
+        <div class="modal">
+          <button type="button" class="modal-close" (click)="closeCreate()" aria-label="Fechar">×</button>
+
+          @if (createdTemporaryPassword) {
+            <h3>Sócio criado com sucesso</h3>
+            <p>Palavra-passe temporária para <strong>{{ createdPartnerName }}</strong>:</p>
+            <div class="temp-password-box">
+              <code>{{ createdTemporaryPassword }}</code>
+              <button type="button" class="button button-secondary" (click)="copyPassword()">{{ copyMessage || 'Copiar' }}</button>
+            </div>
+            <p class="form-privacy-note">Entregue esta palavra-passe ao sócio. Pode ser alterada após o primeiro acesso à área reservada.</p>
+            <div class="form-actions">
+              <button type="button" class="button button-primary" (click)="closeCreate()">Concluir</button>
+            </div>
+          } @else {
+            <h3>Novo Sócio</h3>
+            @if (createError) { <div class="form-error-banner">{{ createError }}</div> }
+            <form class="admin-form" [formGroup]="newPartner" (ngSubmit)="createPartner()" novalidate>
+              <div class="field-grid">
+                <label class="field-full">Nome Completo* <input formControlName="fullName" placeholder="Nome completo"></label>
+                <label>Email* <input formControlName="email" type="email" placeholder="nome@exemplo.pt"></label>
+                <label>Telefone* <input formControlName="phone" type="tel" placeholder="+351 900 000 000"></label>
+                <div class="field-full">
+                  <span class="field-label">Tipo de Sócio*</span>
+                  <div class="radio-group">
+                    <label class="radio-label">
+                      <input type="radio" formControlName="partnerType" value="Professional" (change)="updateFees()">
+                      <span>Profissional</span>
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" formControlName="partnerType" value="Student" (change)="updateFees()">
+                      <span>Estudante</span>
+                    </label>
+                  </div>
+                </div>
+                <label>Sócio desde* <input formControlName="joinedAt" type="date"></label>
+                <label>Válido até <input formControlName="membershipExpiresAt" type="date"></label>
+                <label>NIF <input formControlName="taxId" placeholder="Número de Identificação Fiscal"></label>
+                <label>Profissão <input formControlName="profession" placeholder="Ex: Médico Veterinário"></label>
+                <label>Empresa <input formControlName="companyName" placeholder="Nome da empresa ou instituição"></label>
+                <label>Cidade <input formControlName="city" placeholder="Cidade"></label>
+                <label class="field-full">Observações <textarea formControlName="observations" rows="2" placeholder="Informação adicional"></textarea></label>
+              </div>
+              <p class="form-privacy-note">Jóia €30,00 · Quota €{{ quotaValue.toFixed(2) }} · Total €{{ totalAmount.toFixed(2) }}</p>
+              <div class="form-actions">
+                <button type="submit" class="button button-primary" [disabled]="creating">{{ creating ? 'A criar…' : 'Criar Sócio' }}</button>
+                <button type="button" class="button button-secondary" (click)="closeCreate()">Cancelar</button>
+              </div>
+            </form>
+          }
+        </div>
+      </div>
+    }
   `
 })
 export class AdminPartnersComponent implements OnInit {
@@ -173,6 +232,28 @@ export class AdminPartnersComponent implements OnInit {
   protected selectedPartner: PartnerProfileDto | null = null;
   protected detailLoading = false;
   protected detailError = '';
+  protected showCreate = false;
+  protected creating = false;
+  protected createError = '';
+  protected createdTemporaryPassword = '';
+  protected createdPartnerName = '';
+  protected copyMessage = '';
+  protected quotaValue = 50;
+  protected totalAmount = 80;
+
+  protected readonly newPartner = new FormGroup({
+    fullName: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    phone: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    partnerType: new FormControl('Professional', { nonNullable: true }),
+    joinedAt: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    membershipExpiresAt: new FormControl('', { nonNullable: true }),
+    taxId: new FormControl('', { nonNullable: true }),
+    profession: new FormControl('', { nonNullable: true }),
+    companyName: new FormControl('', { nonNullable: true }),
+    city: new FormControl('', { nonNullable: true }),
+    observations: new FormControl('', { nonNullable: true })
+  });
 
   async ngOnInit() {
     await this.load();
@@ -252,6 +333,79 @@ export class AdminPartnersComponent implements OnInit {
       await this.load();
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Erro ao aprovar sócio.';
+    }
+  }
+
+  protected openCreate() {
+    this.showCreate = true;
+    this.createError = '';
+    this.createdTemporaryPassword = '';
+    this.createdPartnerName = '';
+    this.copyMessage = '';
+    this.newPartner.reset();
+    this.newPartner.patchValue({ partnerType: 'Professional' });
+    this.updateFees();
+  }
+
+  protected closeCreate() {
+    this.showCreate = false;
+    this.createError = '';
+    this.createdTemporaryPassword = '';
+    this.createdPartnerName = '';
+    this.copyMessage = '';
+  }
+
+  protected updateFees() {
+    const isStudent = this.newPartner.controls.partnerType.value === 'Student';
+    this.quotaValue = isStudent ? 20 : 50;
+    this.totalAmount = 30 + this.quotaValue;
+  }
+
+  protected buildCreateRequest(): CreatePartnerRequest {
+    const raw = this.newPartner.getRawValue();
+    return {
+      fullName: raw.fullName,
+      email: raw.email,
+      phone: raw.phone,
+      partnerType: raw.partnerType,
+      taxId: raw.taxId || undefined,
+      profession: raw.profession || undefined,
+      companyName: raw.companyName || undefined,
+      city: raw.city || undefined,
+      observations: raw.observations || undefined,
+      joinedAt: new Date(raw.joinedAt).toISOString(),
+      membershipExpiresAt: raw.membershipExpiresAt ? new Date(raw.membershipExpiresAt).toISOString() : undefined,
+      initiationFee: 30,
+      quotaValue: this.quotaValue,
+      totalAmount: this.totalAmount
+    };
+  }
+
+  protected async createPartner() {
+    if (this.newPartner.invalid) {
+      this.newPartner.markAllAsTouched();
+      return;
+    }
+    this.creating = true;
+    this.createError = '';
+    try {
+      const response = await this.partnersService.createPartner(this.buildCreateRequest());
+      this.createdTemporaryPassword = response.temporaryPassword;
+      this.createdPartnerName = response.partner.fullName;
+      await this.load();
+    } catch (e) {
+      this.createError = e instanceof Error ? e.message : 'Erro ao criar sócio.';
+    } finally {
+      this.creating = false;
+    }
+  }
+
+  protected async copyPassword() {
+    try {
+      await navigator.clipboard.writeText(this.createdTemporaryPassword);
+      this.copyMessage = 'Copiado!';
+    } catch {
+      this.copyMessage = '';
     }
   }
 }

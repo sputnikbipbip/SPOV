@@ -2,7 +2,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from './services/auth.service';
-import { PartnersService, RegisterPartnerRequest } from './services/partners.service';
+import { PartnersService, RegisterPartnerRequest, CreatePartnerRequest } from './services/partners.service';
 import { EventsService, CreateEventRequest, UpdateEventRequest } from './services/events.service';
 import { ContactsService, CreateContactRequest } from './services/contacts.service';
 import { DocumentsService } from './services/documents.service';
@@ -108,6 +108,22 @@ describe('PartnersService', () => {
     req.flush({ data: [], pageNumber: 1, pageSize: 10, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false });
     const result = await promise;
     expect(result.data).toEqual([]);
+  });
+
+  it('createPartner sends POST to /api/partners', async () => {
+    const data: CreatePartnerRequest = {
+      fullName: 'Miguel Almeida', email: 'miguel@spov.pt', phone: '+351900000111', partnerType: 'Professional',
+      joinedAt: '2024-03-01', initiationFee: 30, quotaValue: 50, totalAmount: 80,
+    };
+    const promise = service.createPartner(data);
+    const req = httpMock.expectOne('/api/partners');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(data);
+    req.flush({ partner: { id: 1, fullName: 'Miguel Almeida', email: 'miguel@spov.pt', phone: '+351900000111', partnerType: 'Professional', membershipStatus: 'Active', payments: [], initiationFee: 30, quotaValue: 50, totalAmount: 80 }, temporaryPassword: 'Spov2026!' });
+    const result = await promise;
+    expect(result.partner.id).toBe(1);
+    expect(result.partner.membershipStatus).toBe('Active');
+    expect(result.temporaryPassword).toBe('Spov2026!');
   });
 
   it('getAll forwards MembershipStatus param', async () => {

@@ -854,4 +854,94 @@ describe('AdminPartnersComponent', () => {
     expect(fixture.nativeElement.querySelector('.event-row-dates .text-danger')).toBeNull();
     expect(fixture.nativeElement.querySelector('.event-row-dates .text-warning')).toBeNull();
   });
+
+  it('renders a Novo Sócio button', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(emptyPagedResponse);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const button = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b: HTMLButtonElement) => b.textContent?.trim() === 'Novo Sócio');
+    expect(button).not.toBeNull();
+  });
+
+  it('opens create modal when Novo Sócio is clicked', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(emptyPagedResponse);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const button = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b: HTMLButtonElement) => b.textContent?.trim() === 'Novo Sócio') as HTMLButtonElement;
+    button.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.modal')).not.toBeNull();
+  });
+
+  it('submits createPartner and shows the temporary password', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(emptyPagedResponse);
+    const createSpy = jest.spyOn(svc, 'createPartner').mockResolvedValue({
+      partner: { id: 1, fullName: 'Miguel Almeida', email: 'miguel@spov.pt', phone: '+351900000111', partnerType: 'Professional', membershipStatus: 'Active', payments: [], initiationFee: 30, quotaValue: 50, totalAmount: 80 },
+      temporaryPassword: 'Spov2026!'
+    });
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const comp = fixture.componentInstance as any;
+    comp.showCreate = true;
+    fixture.detectChanges();
+    comp.newPartner.patchValue({
+      fullName: 'Miguel Almeida',
+      email: 'miguel@spov.pt',
+      phone: '+351900000111',
+      partnerType: 'Professional',
+      joinedAt: '2024-03-01'
+    });
+    fixture.nativeElement.querySelector('.modal form button[type="submit"]').click();
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({
+      fullName: 'Miguel Almeida',
+      email: 'miguel@spov.pt',
+      phone: '+351900000111',
+      partnerType: 'Professional',
+      initiationFee: 30,
+      quotaValue: 50,
+      totalAmount: 80
+    }));
+    expect(fixture.nativeElement.textContent).toContain('Spov2026!');
+  });
+
+  it('shows error when createPartner fails', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(emptyPagedResponse);
+    const rejection = Promise.reject(new Error('Já existe um sócio registado com este email.'));
+    rejection.catch(() => {});
+    jest.spyOn(svc, 'createPartner').mockReturnValue(rejection);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const comp = fixture.componentInstance as any;
+    comp.showCreate = true;
+    fixture.detectChanges();
+    comp.newPartner.patchValue({
+      fullName: 'Miguel Almeida',
+      email: 'miguel@spov.pt',
+      phone: '+351900000111',
+      partnerType: 'Professional',
+      joinedAt: '2024-03-01'
+    });
+    fixture.nativeElement.querySelector('.modal form button[type="submit"]').click();
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Já existe um sócio registado com este email.');
+  });
 });
