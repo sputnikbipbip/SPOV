@@ -12,6 +12,6 @@ public class Event : ISearchable
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string? Location { get; set; }
-    public int? CeCredits { get; set; }
     public bool IsMembersOnly { get; set; }
+    public string? ImageData { get; set; }
 }

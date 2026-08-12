@@ -44,8 +44,8 @@ public class EventService : IEventService
             Description = request.Description,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
-            CeCredits = request.CeCredits,
-            IsMembersOnly = request.IsMembersOnly
+            IsMembersOnly = request.IsMembersOnly,
+            ImageData = request.ImageData
         };
 
         var created = await _eventRepository.AddAsync(@event);
@@ -62,8 +62,8 @@ public class EventService : IEventService
         @event.Description = request.Description;
         @event.StartDate = request.StartDate;
         @event.EndDate = request.EndDate;
-        @event.CeCredits = request.CeCredits;
         @event.IsMembersOnly = request.IsMembersOnly;
+        @event.ImageData = request.ImageData;
 
         var updated = await _eventRepository.UpdateAsync(@event);
         return Result<EventDto>.Success(_mapper.Map<EventDto>(updated));

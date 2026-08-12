@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { routes } from './app.routes';
 import { HomeComponent } from './pages/home.component';
 import { AboutComponent, HistoryComponent, GovernanceComponent } from './pages/institutional.component';
@@ -208,7 +208,7 @@ describe('PartnerProfileComponent', () => {
 describe('EventsComponent', () => {
   const emptyPaged = { data: [], pageNumber: 1, pageSize: 50, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false };
   const eventsPaged = {
-    data: [{ id: 1, title: 'Test Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false }],
+    data: [{ id: 1, title: 'Test Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: null }],
     pageNumber: 1, pageSize: 50, totalPages: 1, totalRecords: 1, hasNextPage: false, hasPreviousPage: false,
   };
 
@@ -238,7 +238,7 @@ describe('EventComponent', () => {
   it('shows event hero after load', async () => {
     TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
     const svc = TestBed.inject(EventsService);
-    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false });
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: null });
     jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
     const fixture = TestBed.createComponent(EventComponent);
     fixture.detectChanges();
@@ -251,7 +251,7 @@ describe('EventComponent', () => {
     localStorage.setItem('spov_token', 'fake-token');
     TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
     const svc = TestBed.inject(EventsService);
-    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false });
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: null });
     jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
     const fixture = TestBed.createComponent(EventComponent);
     fixture.detectChanges();
@@ -259,6 +259,115 @@ describe('EventComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Inscrever como sócio');
     localStorage.clear();
+  });
+
+  it('shows event image in hero when present', async () => {
+    TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: 'data:image/png;base64,abc' });
+    jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
+    const fixture = TestBed.createComponent(EventComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const img = fixture.nativeElement.querySelector('.event-hero-image') as HTMLImageElement;
+    expect(img).not.toBeNull();
+    expect(img.getAttribute('src')).toBe('data:image/png;base64,abc');
+  });
+
+  it('renders event and does not redirect when registration check fails', async () => {
+    localStorage.setItem('spov_token', 'fake-token');
+    TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: null });
+    jest.spyOn(svc, 'getMyRegistrations').mockRejectedValue(new Error('Unauthorized'));
+    const fixture = TestBed.createComponent(EventComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('My Event');
+    expect(navigateSpy).not.toHaveBeenCalled();
+    localStorage.clear();
+  });
+
+  it('shows same-day duration with times in hero meta', async () => {
+    TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-11-22T09:00:00', endDate: '2026-11-22T17:30:00', location: null, isMembersOnly: false, imageData: null });
+    jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
+    const fixture = TestBed.createComponent(EventComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const duration = fixture.nativeElement.querySelector('.event-meta-item strong') as HTMLElement;
+    expect(duration.textContent).toContain('22 NOV 2026 · 09:00 – 17:30');
+  });
+
+  it('shows multi-day duration range in hero meta', async () => {
+    TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-11-22T09:00:00', endDate: '2026-11-24T18:00:00', location: 'Lisboa', isMembersOnly: false, imageData: null });
+    jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
+    const fixture = TestBed.createComponent(EventComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('22 NOV – 24 NOV 2026');
+    expect(fixture.nativeElement.textContent).toContain('Local');
+    expect(fixture.nativeElement.textContent).toContain('Lisboa');
+  });
+
+  it('labels the back link as Voltar', async () => {
+    TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: null });
+    jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
+    const fixture = TestBed.createComponent(EventComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const backLink = fixture.nativeElement.querySelector('a[routerLink="/events"]') as HTMLAnchorElement;
+    expect(backLink).not.toBeNull();
+    expect(backLink.textContent.trim()).toBe('← Voltar');
+  });
+
+  it('navigates to /events when the Voltar link is clicked', async () => {
+    TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
+    const router = TestBed.inject(Router);
+    const navSpy = jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: null });
+    jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
+    const fixture = TestBed.createComponent(EventComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const backLink = fixture.nativeElement.querySelector('a[routerLink="/events"]') as HTMLAnchorElement;
+    backLink.click();
+    const navigatedToEvents = navSpy.mock.calls.some((call: unknown[]) => {
+      const target = call[0];
+      return typeof target === 'string' ? target === '/events' : router.serializeUrl(target) === '/events';
+    });
+    expect(navigatedToEvents).toBe(true);
+  });
+
+  it('shows details panel with meta rows', async () => {
+    TestBed.configureTestingModule({ imports: [EventComponent], providers: [provideRouter(routes), provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } }] });
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getById').mockResolvedValue({ id: 1, title: 'My Event', description: 'Desc', startDate: '2026-11-22T09:00:00', endDate: '2026-11-22T17:30:00', location: 'Lisboa', isMembersOnly: true, imageData: null });
+    jest.spyOn(svc, 'getMyRegistrations').mockResolvedValue([]);
+    const fixture = TestBed.createComponent(EventComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const panel = fixture.nativeElement.querySelector('.event-panel') as HTMLElement;
+    expect(panel).not.toBeNull();
+    expect(panel.textContent).toContain('Detalhes');
+    expect(panel.textContent).toContain('22 NOV 2026 · 09:00 – 17:30');
+    expect(panel.textContent).toContain('Lisboa');
+    expect(panel.textContent).toContain('Exclusivo sócios');
   });
 });
 
@@ -409,7 +518,7 @@ describe('AdminLoginComponent', () => {
 describe('AdminEventsComponent', () => {
   const emptyPaged = { data: [], pageNumber: 1, pageSize: 50, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false };
   const eventsPaged = {
-    data: [{ id: 1, title: 'Admin Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false }],
+    data: [{ id: 1, title: 'Admin Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: null }],
     pageNumber: 1, pageSize: 50, totalPages: 1, totalRecords: 1, hasNextPage: false, hasPreviousPage: false,
   };
 
@@ -433,6 +542,40 @@ describe('AdminEventsComponent', () => {
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Admin Event');
+  });
+
+  it('renders event image thumbnail in list row', async () => {
+    TestBed.configureTestingModule({ imports: [AdminEventsComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue({
+      data: [{ id: 1, title: 'Admin Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: 'data:image/png;base64,abc' }],
+      pageNumber: 1, pageSize: 50, totalPages: 1, totalRecords: 1, hasNextPage: false, hasPreviousPage: false,
+    });
+    const fixture = TestBed.createComponent(AdminEventsComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const img = fixture.nativeElement.querySelector('.admin-event-thumb img') as HTMLImageElement;
+    expect(img).not.toBeNull();
+    expect(img.getAttribute('src')).toBe('data:image/png;base64,abc');
+  });
+
+  it('create request includes imageData', async () => {
+    TestBed.configureTestingModule({ imports: [AdminEventsComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(EventsService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(emptyPaged);
+    const createSpy = jest.spyOn(svc, 'create').mockResolvedValue({ id: 1, title: 'New Event', description: null, startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: 'data:image/png;base64,abc' });
+    const fixture = TestBed.createComponent(AdminEventsComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const comp = fixture.componentInstance as any;
+    comp.showNewForm = true;
+    fixture.detectChanges();
+    comp.newForm.patchValue({ title: 'New Event', startDate: '2026-01-01T09:00', endDate: '2026-01-01T18:00', imageData: 'data:image/png;base64,abc' });
+    fixture.nativeElement.querySelector('.admin-form button[type="submit"]').click();
+    await microtaskTick();
+    expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({ title: 'New Event', imageData: 'data:image/png;base64,abc' }));
   });
 });
 

@@ -37,6 +37,9 @@ function formatMonth(iso: string): string {
         <div class="events-grid">
         @for (event of events; track event.id) {
           <article class="event-card" [class.event-card-past]="eventStatus(event.startDate, event.endDate).cls === 'event-status-past'">
+            @if (event.imageData) {
+              <img class="event-card-image" [src]="event.imageData" [alt]="event.title" loading="lazy" decoding="async">
+            }
             <div class="event-card-top">
               <div class="event-date-badge">
                 <span class="event-date-day">{{ formatDay(event.startDate) }}</span>
@@ -49,7 +52,6 @@ function formatMonth(iso: string): string {
               <p>{{ event.description }}</p>
               <app-event-meta [eventData]="event" />
               <div class="event-card-badges">
-                @if (event.ceCredits) { <span class="badge badge-outline-inline">{{ event.ceCredits }} CE</span> }
                 @if (event.isMembersOnly) { <span class="badge badge-yellow-inline">Sócios</span> }
               </div>
             </div>

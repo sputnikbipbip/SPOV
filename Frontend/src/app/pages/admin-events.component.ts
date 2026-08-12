@@ -25,8 +25,16 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest } from 
           <label>Data Início <input type="datetime-local" formControlName="startDate"></label>
           <label>Data Fim <input type="datetime-local" formControlName="endDate"></label>
           <label>Local <input formControlName="location" placeholder="Ex: Hotel Coimbra Aeminium"></label>
-          <label>Créditos CE <input type="number" formControlName="ceCredits" placeholder="Ex: 4"></label>
           <label class="checkbox-label"><input type="checkbox" formControlName="isMembersOnly"> Apenas para sócios</label>
+          <label class="field-full">Imagem
+            <input type="file" accept="image/*" (change)="onImageSelected($event, newForm)">
+            @if (newForm.controls['imageData'].value) {
+              <div class="event-form-image-preview">
+                <img [src]="newForm.controls['imageData'].value" alt="Pré-visualização da imagem do evento">
+                <button type="button" class="button button-secondary" (click)="clearImage(newForm)">Remover</button>
+              </div>
+            }
+          </label>
         </div>
         <div class="form-actions">
           <button type="submit" class="button button-primary" [disabled]="saving">{{ saving ? 'A criar…' : 'Criar Evento' }}</button>
@@ -48,8 +56,16 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest } from 
                 <label>Data Início <input type="datetime-local" formControlName="startDate"></label>
                 <label>Data Fim <input type="datetime-local" formControlName="endDate"></label>
                 <label>Local <input formControlName="location" placeholder="Ex: Hotel Coimbra Aeminium"></label>
-                <label>Créditos CE <input type="number" formControlName="ceCredits" placeholder="Ex: 4"></label>
                 <label class="checkbox-label"><input type="checkbox" formControlName="isMembersOnly"> Apenas para sócios</label>
+                <label class="field-full">Imagem
+                  <input type="file" accept="image/*" (change)="onImageSelected($event, editForm)">
+                  @if (editForm.controls['imageData'].value) {
+                    <div class="event-form-image-preview">
+                      <img [src]="editForm.controls['imageData'].value" alt="Pré-visualização da imagem do evento">
+                      <button type="button" class="button button-secondary" (click)="clearImage(editForm)">Remover</button>
+                    </div>
+                  }
+                </label>
               </div>
               <div class="form-actions">
                 <button type="submit" class="button button-primary" [disabled]="saving">{{ saving ? 'A guardar…' : 'Guardar' }}</button>
@@ -58,6 +74,9 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest } from 
             </form>
           } @else {
             <div class="event-row-content">
+              @if (event.imageData) {
+                <div class="admin-event-thumb"><img [src]="event.imageData" alt=""></div>
+              }
               <div class="event-row-info">
                 <strong>{{ event.title }}</strong>
                 <span class="event-row-dates">{{ event.startDate | date:'dd/MM/yyyy' }} — {{ event.endDate | date:'dd/MM/yyyy' }}</span>
@@ -90,8 +109,8 @@ export class AdminEventsComponent implements OnInit {
     startDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
     endDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
     location: new FormControl('', { nonNullable: true }),
-    ceCredits: new FormControl<number | null>(null),
-    isMembersOnly: new FormControl(false, { nonNullable: true })
+    isMembersOnly: new FormControl(false, { nonNullable: true }),
+    imageData: new FormControl<string | null>(null)
   });
 
   async ngOnInit() {
@@ -133,8 +152,8 @@ export class AdminEventsComponent implements OnInit {
       startDate: new FormControl(this.toDatetimeLocal(event.startDate), { nonNullable: true, validators: Validators.required }),
       endDate: new FormControl(this.toDatetimeLocal(event.endDate), { nonNullable: true, validators: Validators.required }),
       location: new FormControl(event.location ?? '', { nonNullable: true }),
-      ceCredits: new FormControl(event.ceCredits),
-      isMembersOnly: new FormControl(event.isMembersOnly, { nonNullable: true })
+      isMembersOnly: new FormControl(event.isMembersOnly, { nonNullable: true }),
+      imageData: new FormControl<string | null>(event.imageData)
     });
   }
 
@@ -151,9 +170,48 @@ export class AdminEventsComponent implements OnInit {
       startDate: new Date(raw.startDate).toISOString(),
       endDate: new Date(raw.endDate).toISOString(),
       location: raw.location || null,
-      ceCredits: raw.ceCredits ?? null,
-      isMembersOnly: raw.isMembersOnly
+      isMembersOnly: raw.isMembersOnly,
+      imageData: raw.imageData || null
     };
+  }
+
+  onImageSelected(event: Event, form: FormGroup) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      this.downscaleImage(dataUrl).then(result => form.controls['imageData'].setValue(result));
+    };
+    reader.readAsDataURL(file);
+  }
+
+  clearImage(form: FormGroup) {
+    form.controls['imageData'].setValue(null);
+  }
+
+  private downscaleImage(dataUrl: string, maxDimension = 1200, quality = 0.85): Promise<string> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
+        const width = Math.round(img.width * scale);
+        const height = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
   }
 
   async create() {

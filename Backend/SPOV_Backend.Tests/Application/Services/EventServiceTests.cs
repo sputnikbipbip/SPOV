@@ -2,6 +2,7 @@ using Xunit;
 using AutoMapper;
 using NSubstitute;
 using FluentAssertions;
+using SPOV.Application.DTOs.Events;
 using SPOV.Application.Mappings;
 using SPOV.Application.Services;
 using SPOV.Domain.Entities;
@@ -56,5 +57,57 @@ public sealed class EventServiceTests
         await _eventRepository.Received(1).GetAllAsync(
             Arg.Is<QueryFilter>(f => f.PageNumber == 2 && f.PageSize == 25 && f.Search == "webinar" && f.SortBy == "title desc"),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateAsync_Should_PersistImageData()
+    {
+        var request = new CreateEventRequest
+        {
+            Title = "Novo Evento",
+            StartDate = new DateTime(2026, 5, 1),
+            EndDate = new DateTime(2026, 5, 2),
+            ImageData = "data:image/png;base64,iVBORw0KGgo="
+        };
+
+        Event? created = null;
+        _eventRepository.AddAsync(Arg.Do<Event>(e => created = e))
+            .Returns(ci => ci.Arg<Event>());
+
+        var result = await _sut.CreateAsync(request);
+
+        result.IsSuccess.Should().BeTrue();
+        created.Should().NotBeNull();
+        created!.ImageData.Should().Be(request.ImageData);
+        result.Data!.ImageData.Should().Be(request.ImageData);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_Should_UpdateImageData()
+    {
+        var existing = new Event
+        {
+            Id = 1,
+            Title = "Old",
+            StartDate = new DateTime(2026, 5, 1),
+            EndDate = new DateTime(2026, 5, 2),
+            ImageData = "data:image/png;base64,old"
+        };
+        _eventRepository.GetByIdAsync(1).Returns(existing);
+        _eventRepository.UpdateAsync(existing).Returns(existing);
+
+        var request = new UpdateEventRequest
+        {
+            Title = "New",
+            StartDate = new DateTime(2026, 6, 1),
+            EndDate = new DateTime(2026, 6, 2),
+            ImageData = "data:image/jpeg;base64,new"
+        };
+
+        var result = await _sut.UpdateAsync(1, request);
+
+        result.IsSuccess.Should().BeTrue();
+        existing.ImageData.Should().Be(request.ImageData);
+        result.Data!.ImageData.Should().Be(request.ImageData);
     }
 }

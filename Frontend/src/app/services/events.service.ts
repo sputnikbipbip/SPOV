@@ -10,8 +10,8 @@ export interface EventDto {
   startDate: string;
   endDate: string;
   location: string | null;
-  ceCredits: number | null;
   isMembersOnly: boolean;
+  imageData: string | null;
 }
 
 export interface CreateEventRequest {
@@ -20,8 +20,8 @@ export interface CreateEventRequest {
   startDate: string;
   endDate: string;
   location: string | null;
-  ceCredits: number | null;
   isMembersOnly: boolean;
+  imageData: string | null;
 }
 
 export interface UpdateEventRequest {
@@ -30,8 +30,8 @@ export interface UpdateEventRequest {
   startDate: string;
   endDate: string;
   location: string | null;
-  ceCredits: number | null;
   isMembersOnly: boolean;
+  imageData: string | null;
 }
 
 export interface PartnerRegistrationDto {

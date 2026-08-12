@@ -13,5 +13,6 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.Property(e => e.StartDate).IsRequired();
         builder.Property(e => e.EndDate).IsRequired();
         builder.Property(e => e.Location).HasMaxLength(200);
+        builder.Property(e => e.ImageData).HasColumnType("text");
     }
 }

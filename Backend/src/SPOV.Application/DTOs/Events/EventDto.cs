@@ -8,8 +8,8 @@ public class EventDto
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string? Location { get; set; }
-    public int? CeCredits { get; set; }
     public bool IsMembersOnly { get; set; }
+    public string? ImageData { get; set; }
 }
 
 public class CreateEventRequest
@@ -19,8 +19,8 @@ public class CreateEventRequest
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string? Location { get; set; }
-    public int? CeCredits { get; set; }
     public bool IsMembersOnly { get; set; }
+    public string? ImageData { get; set; }
 }
 
 public class UpdateEventRequest
@@ -30,6 +30,6 @@ public class UpdateEventRequest
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string? Location { get; set; }
-    public int? CeCredits { get; set; }
     public bool IsMembersOnly { get; set; }
+    public string? ImageData { get; set; }
 }

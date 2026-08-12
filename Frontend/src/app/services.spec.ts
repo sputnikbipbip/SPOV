@@ -221,7 +221,7 @@ describe('EventsService', () => {
   });
 
   it('create sends POST to /api/events', async () => {
-    const data: CreateEventRequest = { title: 'New', description: null, startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false };
+    const data: CreateEventRequest = { title: 'New', description: null, startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: null };
     const promise = service.create(data);
     const req = httpMock.expectOne('/api/events');
     expect(req.request.method).toBe('POST');
@@ -229,11 +229,29 @@ describe('EventsService', () => {
     await promise;
   });
 
+  it('create sends imageData in body', async () => {
+    const data: CreateEventRequest = { title: 'New', description: null, startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: 'data:image/png;base64,abc' };
+    const promise = service.create(data);
+    const req = httpMock.expectOne('/api/events');
+    expect(req.request.body).toMatchObject({ imageData: data.imageData });
+    req.flush({ id: 1, ...data });
+    await promise;
+  });
+
   it('update sends PUT to /api/events/{id}', async () => {
-    const data: UpdateEventRequest = { title: 'Updated', description: null, startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false };
+    const data: UpdateEventRequest = { title: 'Updated', description: null, startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: null };
     const promise = service.update(1, data);
     const req = httpMock.expectOne('/api/events/1');
     expect(req.request.method).toBe('PUT');
+    req.flush({ id: 1, ...data });
+    await promise;
+  });
+
+  it('update sends imageData in body', async () => {
+    const data: UpdateEventRequest = { title: 'Updated', description: null, startDate: '2026-01-01', endDate: '2026-01-02', location: null, isMembersOnly: false, imageData: 'data:image/jpeg;base64,xyz' };
+    const promise = service.update(1, data);
+    const req = httpMock.expectOne('/api/events/1');
+    expect(req.request.body).toMatchObject({ imageData: data.imageData });
     req.flush({ id: 1, ...data });
     await promise;
   });
