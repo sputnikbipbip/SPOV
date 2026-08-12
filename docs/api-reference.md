@@ -256,6 +256,7 @@ These endpoints manage SPOV members (sócios).
 | Method | Path | Auth | Policy | Who can call | Description |
 |--------|------|------|--------|-------------|-------------|
 | POST | `/api/partners/register` | No | Public | **Anyone** | **Register as a new partner.** Creates an ApplicationUser with Partner role AND a Partner profile with status "Pending". Takes name, email, password, phone, and optional fields. |
+| POST | `/api/partners` | Yes | AdminOnly | **Admin only** | **Manually add a partner** (e.g. existing members). Creates an ApplicationUser with a server-generated temporary password (returned once in the response) and a Partner profile with status "Active". Takes name, email, phone, partner type, `joinedAt`, optional `membershipExpiresAt`, and optional fields. |
 | GET | `/api/partners` | Yes | AdminOnly | **Admin only** | **Paginated list of all partners.** Supports `PageNumber`, `PageSize` (max 50), `SortBy`, and `Search` query params. Returns a `PagedResponse`. |
 | GET | `/api/partners/{id}` | Yes | AdminOnly | **Admin only** | Get a specific partner by ID. |
 | GET | `/api/partners/me` | Yes | [Authorize] | **Any authenticated user** | Get your own partner profile (you must have a Partner entity linked to your user). |
@@ -571,8 +572,9 @@ The Angular frontend has dedicated pages for partners:
   POST /api/auth/login         GET /api/partners/me      GET /api/documents     GET /api/partners
   POST /api/auth/register      GET /api/partners/                              GET /api/partners/{id}
   POST /api/partners/register     my-profile                                   POST /api/partners/{id}/approve
-  GET /health                  PUT /api/partners/me                            POST /api/events
-  GET /api/events              GET /api/partners/                              PUT /api/events/{id}
+  GET /health                  PUT /api/partners/me                            POST /api/partners
+  GET /api/events              GET /api/partners/                              POST /api/events
+  GET /api/events/{id}            me/registrations                             PUT /api/events/{id}
   GET /api/events/{id}            me/registrations                             DELETE /api/events/{id}
   GET /api/news                POST /api/events/*/                             GET /api/events/*/registrations
   GET /api/news/{id}              registrations                                POST /api/news
