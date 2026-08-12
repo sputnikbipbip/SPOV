@@ -55,6 +55,17 @@ using (var scope = app.Services.CreateScope())
         await alterCmd.ExecuteNonQueryAsync();
     }
 
+    await using var imageCheckCmd = new NpgsqlCommand("SELECT column_name FROM information_schema.columns WHERE table_name = 'Events' AND column_name = 'ImageData'", conn);
+    var imageDataExists = await imageCheckCmd.ExecuteScalarAsync();
+    if (imageDataExists is null)
+    {
+        await using var alterImageCmd = new NpgsqlCommand("ALTER TABLE \"Events\" ADD COLUMN \"ImageData\" text", conn);
+        await alterImageCmd.ExecuteNonQueryAsync();
+    }
+
+    await using var creditsDropCmd = new NpgsqlCommand("ALTER TABLE \"Events\" DROP COLUMN IF EXISTS \"CeCredits\"", conn);
+    await creditsDropCmd.ExecuteNonQueryAsync();
+
     if (!await db.Events.AnyAsync())
     {
         db.Events.AddRange(
@@ -65,7 +76,6 @@ using (var scope = app.Services.CreateScope())
                 StartDate = new DateTime(2025, 11, 22, 9, 0, 0, DateTimeKind.Utc),
                 EndDate = new DateTime(2025, 11, 22, 17, 30, 0, DateTimeKind.Utc),
                 Location = "Hotel Coimbra Aeminium",
-                CeCredits = 8,
                 IsMembersOnly = false
             },
             new Event
@@ -75,7 +85,6 @@ using (var scope = app.Services.CreateScope())
                 StartDate = new DateTime(2026, 9, 12, 9, 0, 0, DateTimeKind.Utc),
                 EndDate = new DateTime(2026, 9, 12, 17, 0, 0, DateTimeKind.Utc),
                 Location = "Hospital Veterinário do Porto",
-                CeCredits = 4,
                 IsMembersOnly = false
             },
             new Event
@@ -85,7 +94,6 @@ using (var scope = app.Services.CreateScope())
                 StartDate = new DateTime(2026, 10, 5, 18, 0, 0, DateTimeKind.Utc),
                 EndDate = new DateTime(2026, 10, 5, 20, 0, 0, DateTimeKind.Utc),
                 Location = "Online",
-                CeCredits = 2,
                 IsMembersOnly = true
             },
             new Event
@@ -95,7 +103,6 @@ using (var scope = app.Services.CreateScope())
                 StartDate = new DateTime(2026, 3, 15, 9, 0, 0, DateTimeKind.Utc),
                 EndDate = new DateTime(2026, 3, 16, 18, 0, 0, DateTimeKind.Utc),
                 Location = "Faculdade de Medicina Veterinária de Lisboa",
-                CeCredits = 6,
                 IsMembersOnly = false
             }
         );
