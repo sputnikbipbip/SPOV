@@ -2,27 +2,13 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace SPOV_Backend.Tests.IntegrationTests.Partner;
 
 public sealed class PartnerAuthFlowTests
 {
-    private static WebApplicationFactory<Program> CreateFactory() =>
-        new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureAppConfiguration((_, config) =>
-                {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ConnectionStrings:DefaultConnection"] =
-                            "Host=localhost;Port=5432;Database=spov;Username=spov;Password=ciD7M9edVCSTJtcgapmFw3FO"
-                    });
-                });
-            });
+    private static ApiApplicationFactory CreateFactory() => new();
 
     [Fact]
     public async Task RegisterPartner_Should_CreateUserAndReturnProfile()

@@ -25,7 +25,7 @@ backend-run:
 	dotnet run --project Backend/src/SPOV.WebApi/SPOV.WebApi.csproj
 
 backend-test:
-	dotnet test Backend/SPOV_Backend.Tests/SPOV_Backend.Tests.csproj
+	POSTGRES_PASSWORD=$$(cat docker/secrets/postgres-password.txt 2>/dev/null || echo changeme) dotnet test Backend/SPOV_Backend.Tests/SPOV_Backend.Tests.csproj
 
 frontend-install:
 	npm install --prefix Frontend

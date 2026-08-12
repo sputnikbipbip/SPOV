@@ -1,8 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace SPOV_Backend.Tests.IntegrationTests.Auth;
@@ -12,18 +10,7 @@ public sealed class AuthEndpointTests
     [Fact]
     public async Task Post_Login_WithAdminCredentials_Should_ReturnToken()
     {
-        await using var factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureAppConfiguration((_, config) =>
-                {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ConnectionStrings:DefaultConnection"] =
-                            "Host=localhost;Port=5432;Database=spov;Username=spov;Password=ciD7M9edVCSTJtcgapmFw3FO"
-                    });
-                });
-            });
+        await using var factory = new ApiApplicationFactory();
 
         using var client = factory.CreateClient();
 
@@ -44,18 +31,7 @@ public sealed class AuthEndpointTests
     [Fact]
     public async Task Post_Login_WithInvalidCredentials_Should_ReturnUnauthorized()
     {
-        await using var factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureAppConfiguration((_, config) =>
-                {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ConnectionStrings:DefaultConnection"] =
-                            "Host=localhost;Port=5432;Database=spov;Username=spov;Password=ciD7M9edVCSTJtcgapmFw3FO"
-                    });
-                });
-            });
+        await using var factory = new ApiApplicationFactory();
 
         using var client = factory.CreateClient();
 
