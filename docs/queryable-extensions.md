@@ -71,7 +71,7 @@ public class Partner : ISearchable
 }
 ```
 
-Currently implemented by: `Partner`, `Article`, `NewsPost`, `Event`.
+Currently implemented by: `Partner`, `Article`, `Event`.
 
 ## How `ApplySearch` works
 
@@ -182,8 +182,8 @@ var partners = _context.Partners
 Search only specific fields on any type:
 
 ```csharp
-var posts = _context.NewsPosts
-    .ApplySearch(term, n => n.Title, n => n.Body);
+var articles = _context.Articles
+    .ApplySearch(term, a => a.Title, a => a.Body);
 ```
 
 Full pipeline:
@@ -257,5 +257,5 @@ dotnet test Backend/SPOV_Backend.Tests/SPOV_Backend.Tests.csproj --filter "Fully
 | --- | --- |
 | `src/SPOV.Domain/Common/ISearchable.cs` | New `ISearchable` interface |
 | `src/SPOV.Application/Common/QueryableExtensions.cs` | Generic `ApplySearch` (2 overloads), expression-tree `ApplySort`, `ApplyPagination` unchanged |
-| `src/SPOV.Domain/Entities/{Partner,Article,NewsPost,Event}.cs` | Implement `ISearchable` |
+| `src/SPOV.Domain/Entities/{Partner,Article,Event}.cs` | Implement `ISearchable` |
 | `SPOV_Backend.Tests/Application/Common/QueryableExtensionsTests.cs` | New test suite |

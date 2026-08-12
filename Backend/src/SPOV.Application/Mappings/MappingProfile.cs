@@ -6,7 +6,6 @@ using SPOV.Application.DTOs.Documents;
 using SPOV.Application.DTOs.EventRegistrations;
 using SPOV.Application.DTOs.Events;
 using SPOV.Application.DTOs.MembershipTiers;
-using SPOV.Application.DTOs.News;
 using SPOV.Application.DTOs.Partners;
 using SPOV.Application.DTOs.Payments;
 using SPOV.Domain.Entities;
@@ -17,7 +16,6 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<NewsPost, NewsPostDto>();
         CreateMap<SharedDocument, DocumentDto>();
         CreateMap<Partner, PartnerDto>()
             .ForMember(d => d.MembershipStatus, o => o.MapFrom(s => s.MembershipStatus.ToString()))

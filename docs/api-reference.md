@@ -155,7 +155,7 @@ A **role** is a label that the server assigns to a user. The API uses two roles:
 
 | Role | Who has it | What they can do |
 |------|-----------|-----------------|
-| `Administrator` | Admin staff | Everything — create events, approve partners, manage news, etc. |
+| `Administrator` | Admin staff | Everything — create events, manage partners and articles, approve members, etc. |
 | `Partner` | Registered SPOV members | View their own profile, access documents, register for events |
 
 When a user registers through `/api/partners/register`, the server automatically assigns them the `Partner` role. The `Administrator` role is set manually.
@@ -186,7 +186,7 @@ A **policy** is a rule that checks roles. The API has three policies:
      │  endpoints     │ │ /login   │ │ /register     │
      │  (health,      │ │          │ │               │
      │   events list, │ │          │ │               │
-     │   news, etc.)  │ │          │ │               │
+     │   articles)    │ │          │ │               │
      └────────────────┘ └──────────┘ └──────────────┘
                                           │
                                    Token received
@@ -347,18 +347,6 @@ The password you provide is hashed and stored securely. It is never stored in pl
 | GET | `/api/events/{eventId}/registrations` | Yes | AdminOnly | **Admin only** | List all registrations for an event. |
 | POST | `/api/events/{eventId}/registrations` | Yes | [Authorize] | **Any authenticated user** | Register yourself for an event. The partner ID is resolved from the JWT token — no body needed. |
 | DELETE | `/api/events/{eventId}/registrations` | Yes | [Authorize] | **Any authenticated user** | Cancel your own registration for an event. The partner ID is resolved from the JWT token. |
-
----
-
-### News (`/api/news`)
-
-| Method | Path | Auth | Policy | Who can call | Description |
-|--------|------|------|--------|-------------|-------------|
-| GET | `/api/news` | No | Public | Anyone | List all news posts. |
-| GET | `/api/news/{id}` | No | Public | Anyone | Get a specific news post. |
-| POST | `/api/news` | Yes | AdminOnly | **Admin only** | Create a news post. |
-| PUT | `/api/news/{id}` | Yes | AdminOnly | **Admin only** | Update a news post. |
-| DELETE | `/api/news/{id}` | Yes | AdminOnly | **Admin only** | Delete a news post. |
 
 ---
 
@@ -575,15 +563,10 @@ The Angular frontend has dedicated pages for partners:
   GET /health                  PUT /api/partners/me                            POST /api/partners
   GET /api/events              GET /api/partners/                              POST /api/events
   GET /api/events/{id}            me/registrations                             PUT /api/events/{id}
-  GET /api/events/{id}            me/registrations                             DELETE /api/events/{id}
-  GET /api/news                POST /api/events/*/                             GET /api/events/*/registrations
-  GET /api/news/{id}              registrations                                POST /api/news
-                               DELETE /api/events/*/
-                                  registrations
-  GET /api/articles                                                           PUT /api/news/{id}
-  POST /api/contacts                                                          DELETE /api/news/{id}
-  GET /api/membership-tiers                                                    POST /api/articles
-                                                                               GET /api/membership-tiers/{id}
+  GET /api/articles            POST /api/events/*/                             DELETE /api/events/{id}
+  POST /api/contacts              registrations                                GET /api/events/*/registrations
+  GET /api/membership-tiers    DELETE /api/events/*/                           POST /api/articles
+                                  registrations                                GET /api/membership-tiers/{id}
                                                                                GET /api/partners/*/payments
                                                                                GET /api/admin-users
 ```

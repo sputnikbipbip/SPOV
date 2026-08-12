@@ -43,7 +43,7 @@ Current: 34 tests. Missing coverage for:
 | **Delete partner** in admin | No way to remove a partner. |
 | **Event registration list** in admin | API exists (`GET /api/events/{id}/registrations`) but no frontend page to see who registered. |
 | **Payment verification workflow** — mark payments as received | Admin cannot see payment proofs or mark them as verified. |
-| **News/Articles management** | API endpoints exist but no admin frontend for news/articles CRUD. |
+| **Article management** | API endpoints exist but no admin frontend for article CRUD. |
 
 ### 2.2 Missing Partner Features
 
@@ -59,8 +59,8 @@ Current: 34 tests. Missing coverage for:
 
 | Feature | Reason |
 |---------|--------|
-| **News/Articles listing** | API has `/api/news` and `/api/articles` but no frontend pages. |
-| **Single news/article page** | No detail page for news posts. |
+| **Article listing** | API has `/api/articles` but no frontend page. |
+| **Single article page** | No detail page for articles. |
 | **404 Not Found page** | Currently redirects to `/`. Should show a meaningful "Página não encontrada" page instead. |
 
 ### 2.4 Component-Level Gaps (per AGENTS.md)
@@ -152,7 +152,7 @@ Current: 34 tests. Missing coverage for:
 | **SEO metadata** | All pages have `title` route data but no `<meta name="description">` tags or Open Graph. |
 | **Sitemap** | No `/sitemap.xml` for search engines. |
 | **PWA / offline support** | No service worker. Angular PWA (`@angular/pwa`) not added. |
-| **Paginated lists** | Events list, partners list, news list — all load full data with no pagination. |
+| **Paginated lists** | Events list, partners list — all load full data with no pagination. |
 | **Search** | No search functionality on any page. |
 | **Internationalization (i18n)** | Mixed Portuguese/English in codebase. Route paths are English, UI text is Portuguese. No i18n framework. |
 | **Dark mode** | Only light theme. No dark mode toggle. |

@@ -17,7 +17,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<EventRegistration> EventRegistrations => Set<EventRegistration>();
-    public DbSet<NewsPost> NewsPosts => Set<NewsPost>();
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
     public DbSet<SharedDocument> SharedDocuments => Set<SharedDocument>();
