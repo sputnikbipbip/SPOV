@@ -98,7 +98,7 @@ public static class QueryableExtensions
         IEnumerable<Expression<Func<T, string?>>> searchFields)
     {
         var parameter = Expression.Parameter(typeof(T), "entity");
-        var normalizedTerm = search.ToLowerInvariant();
+        var normalizedTerm = search.ToLower();
 
         Expression? body = null;
 
@@ -108,7 +108,7 @@ public static class QueryableExtensions
 
             var normalizedField = Expression.Call(
                 fieldBody,
-                typeof(string).GetMethod(nameof(string.ToLowerInvariant), Type.EmptyTypes)!);
+                typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes)!);
 
             var contains = Expression.Call(
                 normalizedField,

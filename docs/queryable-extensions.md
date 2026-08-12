@@ -105,12 +105,12 @@ public static IQueryable<T> ApplySearch<T>(this IQueryable<T> query, string? sea
 For every searchable field it builds the expression:
 
 ```
-(field != null && field.ToLowerInvariant().Contains(search.ToLowerInvariant()))
+(field != null && field.ToLower().Contains(search.ToLower()))
 ```
 
 and `OR`s them together:
 
-- **Case-insensitive:** both sides are normalized with `ToLowerInvariant()`, so
+- **Case-insensitive:** both sides are normalized with `ToLower()`, so
   searching `"design"` matches `"Design Patterns"`.
 - **Null-safe:** `string?` fields (e.g. `Partner.TaxId`) are guarded with
   `field != null` and the `&&` short-circuits, so in-memory execution never
@@ -120,6 +120,11 @@ and `OR`s them together:
 - **EF Core friendly:** every call is over the existing `IQueryable<T>`, so the
   whole predicate is translated to SQL by EF Core when the query hits the
   database; nothing materializes the query in memory first.
+- **Why `ToLower()` and not `ToLowerInvariant()`:** EF Core translates
+  `string.ToLower()` to SQL `LOWER()`, but `ToLowerInvariant()` has **no**
+  translation and throws at runtime (`QueryableMethodTranslatingExpressionVisitor`).
+  Since `LOWER()` is effectively culture-invariant in PostgreSQL, `ToLower()` is
+  both translatable and behaviourally equivalent here.
 
 ### Why a `ParameterReplacerVisitor`?
 
@@ -212,9 +217,9 @@ var page = _context.Events
   `params` overload — a call with no explicit fields searches the entity's
   declared properties. If you ever need "no fields at all", pass an explicit
   empty set or use a non-`ISearchable` type.
-- **`ToLowerInvariant` vs `EF.Functions.ILike`:** `ILike` is PostgreSQL-specific
+- **`ToLower` vs `EF.Functions.ILike`:** `ILike` is PostgreSQL-specific
   and requires EF Core in the `SPOV.Application` project (which intentionally has
-  none). The `ToLowerInvariant().Contains(...)` approach works on LINQ to Objects
+  none). The `ToLower().Contains(...)` approach works on LINQ to Objects
   (so tests run against in-memory lists) and translates to `LOWER()`/`LIKE` in
   SQL. If you later need accent-insensitive or PG-optimized matching, swap the
   body inside `BuildSearchPredicate` for `EF.Functions.ILike` and add the EF Core

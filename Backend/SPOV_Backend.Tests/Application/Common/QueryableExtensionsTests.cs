@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using FluentAssertions;
 using SPOV.Application.Common;
 using SPOV.Domain.Common;
@@ -172,6 +173,32 @@ public sealed class QueryableExtensionsTests
         var result = documents.ApplySearch("relatorio").ToList();
 
         result.Should().ContainSingle().Which.Id.Should().Be(1);
+    }
+
+    [Fact]
+    public void ApplySearch_Predicate_Should_UseTranslatableLowercaseMethod()
+    {
+        var query = Articles.ApplySearch("postgres");
+        var where = query.Expression as MethodCallExpression;
+        var methods = new HashSet<string>();
+
+        var visitor = new MethodCollectorVisitor();
+        visitor.Visit(where);
+        methods.UnionWith(visitor.Methods);
+
+        methods.Should().Contain(nameof(string.ToLower));
+        methods.Should().NotContain(nameof(string.ToLowerInvariant));
+    }
+
+    private sealed class MethodCollectorVisitor : ExpressionVisitor
+    {
+        public HashSet<string> Methods { get; } = [];
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            Methods.Add(node.Method.Name);
+            return base.VisitMethodCall(node);
+        }
     }
 
     private sealed class SearchablePartner : ISearchable

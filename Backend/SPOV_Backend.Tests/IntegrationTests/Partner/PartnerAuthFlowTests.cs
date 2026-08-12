@@ -283,6 +283,40 @@ public sealed class PartnerAuthFlowTests
     }
 
     [Fact]
+    public async Task GetPartners_WithSearch_Should_ReturnMatchingPartners()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"searchable-{Guid.NewGuid():N}@spov.pt";
+        await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Rui Gonsalves",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 000",
+            partnerType = "Professional",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+
+        var adminLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "admin@spov.pt",
+            password = "Admin123!"
+        });
+        var adminToken = await adminLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken!.AccessToken);
+
+        var response = await client.GetAsync("/api/partners?Search=gonsalves");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var paged = await response.Content.ReadFromJsonAsync<PagedPartnersResponse>();
+        paged!.Data.Should().Contain(p => p.FullName == "Rui Gonsalves");
+    }
+
+    [Fact]
     public async Task GetPartners_WithMembershipStatusFilter_Should_ReturnOnlyPending()
     {
         await using var factory = CreateFactory();
