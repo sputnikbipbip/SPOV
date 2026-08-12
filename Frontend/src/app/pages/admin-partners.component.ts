@@ -6,10 +6,14 @@ import { PartnersService, PartnerDto } from '../services/partners.service';
   selector: 'app-admin-partners',
   standalone: true,
   imports: [DatePipe],
+  styles: `
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 1.5rem 0; }
+    .pagination-info { font-size: 0.9rem; color: var(--spov-muted); }
+  `,
   template: `
     <div class="admin-header">
       <h2>Sócios</h2>
-      <span class="badge badge-dark" style="font-size:0.85rem;">{{ partners.length }} total</span>
+      <span class="badge badge-dark" style="font-size:0.85rem;">{{ totalRecords }} total</span>
     </div>
 
     @if (error) { <div class="form-error-banner">{{ error }}</div> }
@@ -35,6 +39,14 @@ import { PartnersService, PartnerDto } from '../services/partners.service';
           </div>
         </div>
       }
+
+      @if (totalPages > 1) {
+        <div class="pagination">
+          <button type="button" class="button button-secondary" style="min-height:36px;padding:0.4rem 1rem;font-size:0.85rem;" [disabled]="pageNumber <= 1" (click)="goToPage(pageNumber - 1)">Anterior</button>
+          <span class="pagination-info">{{ pageNumber }} / {{ totalPages }}</span>
+          <button type="button" class="button button-secondary" style="min-height:36px;padding:0.4rem 1rem;font-size:0.85rem;" [disabled]="pageNumber >= totalPages" (click)="goToPage(pageNumber + 1)">Seguinte</button>
+        </div>
+      }
     </div>
   `
 })
@@ -43,6 +55,10 @@ export class AdminPartnersComponent implements OnInit {
   protected partners: PartnerDto[] = [];
   protected error = '';
   protected success = '';
+  protected pageNumber = 1;
+  protected pageSize = 10;
+  protected totalPages = 1;
+  protected totalRecords = 0;
 
   async ngOnInit() {
     await this.load();
@@ -50,10 +66,22 @@ export class AdminPartnersComponent implements OnInit {
 
   private async load() {
     try {
-      this.partners = await this.partnersService.getAll();
+      const response = await this.partnersService.getAll({
+        pageNumber: this.pageNumber,
+        pageSize: this.pageSize,
+      });
+      this.partners = response.data;
+      this.totalPages = response.totalPages;
+      this.totalRecords = response.totalRecords;
+      this.pageNumber = response.pageNumber;
     } catch {
       this.error = 'Erro ao carregar sócios.';
     }
+  }
+
+  protected async goToPage(page: number) {
+    this.pageNumber = page;
+    await this.load();
   }
 
   protected statusLabel(status: string): string {

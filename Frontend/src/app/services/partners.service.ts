@@ -1,5 +1,23 @@
 import { Injectable } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { ApiService } from './api.service';
+
+export interface QueryFilter {
+  pageNumber?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: string;
+}
+
+export interface PagedResponse<T> {
+  data: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  totalRecords: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
 
 export interface RegisterPartnerRequest {
   fullName: string;
@@ -102,8 +120,13 @@ export class PartnersService extends ApiService {
     return this.post('/api/partners/register', data);
   }
 
-  getAll(): Promise<PartnerDto[]> {
-    return this.get('/api/partners');
+  getAll(filter?: QueryFilter): Promise<PagedResponse<PartnerDto>> {
+    let params = new HttpParams();
+    if (filter?.pageNumber) params = params.set('PageNumber', filter.pageNumber.toString());
+    if (filter?.pageSize) params = params.set('PageSize', filter.pageSize.toString());
+    if (filter?.search) params = params.set('Search', filter.search);
+    if (filter?.sortBy) params = params.set('SortBy', filter.sortBy);
+    return this.get('/api/partners', params);
   }
 
   approve(id: number): Promise<PartnerDto> {

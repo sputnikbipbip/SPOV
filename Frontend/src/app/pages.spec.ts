@@ -419,10 +419,16 @@ describe('AdminEventsComponent', () => {
 });
 
 describe('AdminPartnersComponent', () => {
+  const emptyPagedResponse = { data: [], pageNumber: 1, pageSize: 10, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false };
+  const singlePagedResponse = {
+    data: [{ id: 1, fullName: 'John Doe', membershipStatus: 'Pending', joinedAt: '2025-06-01', userId: 'abc', clinicName: null, specialization: null, country: null, membershipTierId: null, membershipTierName: null, membershipExpiresAt: null }],
+    pageNumber: 1, pageSize: 10, totalPages: 1, totalRecords: 1, hasNextPage: false, hasPreviousPage: false
+  };
+
   it('shows empty state when no partners', async () => {
     TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
     const svc = TestBed.inject(PartnersService);
-    jest.spyOn(svc, 'getAll').mockResolvedValue([]);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(emptyPagedResponse);
     const fixture = TestBed.createComponent(AdminPartnersComponent);
     fixture.detectChanges();
     await microtaskTick();
@@ -433,11 +439,55 @@ describe('AdminPartnersComponent', () => {
   it('renders partner list', async () => {
     TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
     const svc = TestBed.inject(PartnersService);
-    jest.spyOn(svc, 'getAll').mockResolvedValue([{ id: 1, fullName: 'John Doe', membershipStatus: 'Pending', joinedAt: '2025-06-01', userId: 'abc', clinicName: null, specialization: null, country: null, membershipTierId: null, membershipTierName: null, membershipExpiresAt: null }]);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(singlePagedResponse);
     const fixture = TestBed.createComponent(AdminPartnersComponent);
     fixture.detectChanges();
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('John Doe');
+  });
+
+  it('hides pagination when totalPages is 1', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(singlePagedResponse);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.pagination')).toBeNull();
+  });
+
+  it('shows pagination when totalPages > 1', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    const pagedResponse = {
+      data: [{ id: 1, fullName: 'Jane Doe', membershipStatus: 'Active', joinedAt: '2025-01-01', userId: 'u1', clinicName: null, specialization: null, country: null, membershipTierId: null, membershipTierName: null, membershipExpiresAt: null }],
+      pageNumber: 1, pageSize: 10, totalPages: 3, totalRecords: 25, hasNextPage: true, hasPreviousPage: false
+    };
+    jest.spyOn(svc, 'getAll').mockResolvedValue(pagedResponse);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.pagination')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('1 / 3');
+  });
+
+  it('disables previous button on first page', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    const pagedResponse = {
+      data: [{ id: 1, fullName: 'Jane Doe', membershipStatus: 'Active', joinedAt: '2025-01-01', userId: 'u1', clinicName: null, specialization: null, country: null, membershipTierId: null, membershipTierName: null, membershipExpiresAt: null }],
+      pageNumber: 1, pageSize: 10, totalPages: 3, totalRecords: 25, hasNextPage: true, hasPreviousPage: false
+    };
+    jest.spyOn(svc, 'getAll').mockResolvedValue(pagedResponse);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const buttons = fixture.nativeElement.querySelectorAll('.pagination button');
+    expect(buttons[0].disabled).toBe(true);
+    expect(buttons[1].disabled).toBe(false);
   });
 });

@@ -105,8 +105,9 @@ describe('PartnersService', () => {
     const promise = service.getAll();
     const req = httpMock.expectOne('/api/partners');
     expect(req.request.method).toBe('GET');
-    req.flush([]);
-    await promise;
+    req.flush({ data: [], pageNumber: 1, pageSize: 10, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false });
+    const result = await promise;
+    expect(result.data).toEqual([]);
   });
 
   it('approve sends POST to /api/partners/{id}/approve', async () => {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -16,9 +16,9 @@ export class ApiService {
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
-  protected async get<T>(path: string): Promise<T> {
+  protected async get<T>(path: string, params?: HttpParams): Promise<T> {
     try {
-      return await firstValueFrom(this.http.get<T>(`${this.baseUrl}${path}`, { headers: this.getAuthHeaders() }));
+      return await firstValueFrom(this.http.get<T>(`${this.baseUrl}${path}`, { headers: this.getAuthHeaders(), params }));
     } catch (e) {
       throw this.handleError(e);
     }
