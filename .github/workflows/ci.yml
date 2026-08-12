@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: spov_test
+          POSTGRES_USER: spov
+          POSTGRES_PASSWORD: spov_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U spov -d spov_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: spov
+      POSTGRES_PASSWORD: spov_test_password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore Backend/SPOV_Backend.slnx
+      - run: dotnet test Backend/SPOV_Backend.Tests/SPOV_Backend.Tests.csproj --no-restore
+
+  frontend:
+    name: Frontend tests and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+      - run: npm ci --prefix Frontend
+      - run: npm test --prefix Frontend
+      - run: npm run build --prefix Frontend
