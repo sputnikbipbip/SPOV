@@ -1,7 +1,9 @@
 using AutoMapper;
+using SPOV.Application.Common;
 using SPOV.Application.DTOs.MembershipTiers;
 using SPOV.Domain.Common;
 using SPOV.Domain.Interfaces;
+using SPOV.Domain.Specifications;
 
 namespace SPOV.Application.Services;
 
@@ -16,10 +18,13 @@ public class MembershipTierService : IMembershipTierService
         _mapper = mapper;
     }
 
-    public async Task<Result<List<MembershipTierDto>>> GetAllAsync()
+    public async Task<Result<PagedResponse<MembershipTierDto>>> GetAllAsync(QueryFilter queryFilter, CancellationToken ct)
     {
-        var tiers = await _tierRepository.GetAllAsync();
-        return Result<List<MembershipTierDto>>.Success(_mapper.Map<List<MembershipTierDto>>(tiers));
+        var paged = await _tierRepository.GetAllAsync(queryFilter, ct);
+        var items = _mapper.Map<List<MembershipTierDto>>(paged.Items);
+
+        return Result<PagedResponse<MembershipTierDto>>.Success(
+            PagedResponseBuilder.From(new PagedResult<MembershipTierDto>(items, paged.TotalRecords, paged.PageNumber, paged.PageSize)));
     }
 
     public async Task<Result<MembershipTierDto?>> GetByIdAsync(int id)

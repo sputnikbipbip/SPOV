@@ -35,14 +35,8 @@ public class PartnerService : IPartnerService
         var paged = await _partnerRepository.GetAllAsync(queryFilter, ct);
         var items = _mapper.Map<List<PartnerDto>>(paged.Items);
 
-        return Result<PagedResponse<PartnerDto>>.Success(new PagedResponse<PartnerDto>
-        {
-            Data = items,
-            PageNumber = paged.PageNumber,
-            PageSize = paged.PageSize,
-            TotalRecords = paged.TotalRecords,
-            TotalPages = (int)Math.Ceiling(paged.TotalRecords / (double)paged.PageSize)
-        });
+        return Result<PagedResponse<PartnerDto>>.Success(
+            PagedResponseBuilder.From(new PagedResult<PartnerDto>(items, paged.TotalRecords, paged.PageNumber, paged.PageSize)));
     }
 
     public async Task<Result<PartnerDto?>> GetByIdAsync(int id)

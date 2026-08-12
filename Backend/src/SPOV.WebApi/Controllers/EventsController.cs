@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SPOV.Application.DTOs.Events;
 using SPOV.Application.Services;
+using SPOV.Domain.Specifications;
 using SPOV.WebApi.Extensions;
 
 namespace SPOV.WebApi.Controllers;
@@ -18,9 +19,9 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] QueryFilter filter)
     {
-        var result = await _eventService.GetAllAsync();
+        var result = await _eventService.GetAllAsync(filter, HttpContext.RequestAborted);
         return result.ToActionResult();
     }
 

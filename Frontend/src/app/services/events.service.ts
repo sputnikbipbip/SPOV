@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { ApiService } from './api.service';
+import { QueryFilter, PagedResponse } from './paging';
 
 export interface EventDto {
   id: number;
@@ -43,8 +45,13 @@ export interface PartnerRegistrationDto {
 
 @Injectable({ providedIn: 'root' })
 export class EventsService extends ApiService {
-  getAll(): Promise<EventDto[]> {
-    return this.get('/api/events');
+  getAll(filter?: QueryFilter): Promise<PagedResponse<EventDto>> {
+    let params = new HttpParams();
+    if (filter?.pageNumber) params = params.set('PageNumber', filter.pageNumber.toString());
+    if (filter?.pageSize) params = params.set('PageSize', filter.pageSize.toString());
+    if (filter?.search) params = params.set('Search', filter.search);
+    if (filter?.sortBy) params = params.set('SortBy', filter.sortBy);
+    return this.get('/api/events', params);
   }
 
   getById(id: number): Promise<EventDto> {

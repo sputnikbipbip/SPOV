@@ -1,8 +1,10 @@
 using AutoMapper;
+using SPOV.Application.Common;
 using SPOV.Application.DTOs.Events;
 using SPOV.Domain.Common;
 using SPOV.Domain.Entities;
 using SPOV.Domain.Interfaces;
+using SPOV.Domain.Specifications;
 
 namespace SPOV.Application.Services;
 
@@ -17,10 +19,13 @@ public class EventService : IEventService
         _mapper = mapper;
     }
 
-    public async Task<Result<List<EventDto>>> GetAllAsync()
+    public async Task<Result<PagedResponse<EventDto>>> GetAllAsync(QueryFilter queryFilter, CancellationToken ct)
     {
-        var events = await _eventRepository.GetAllAsync();
-        return Result<List<EventDto>>.Success(_mapper.Map<List<EventDto>>(events));
+        var paged = await _eventRepository.GetAllAsync(queryFilter, ct);
+        var items = _mapper.Map<List<EventDto>>(paged.Items);
+
+        return Result<PagedResponse<EventDto>>.Success(
+            PagedResponseBuilder.From(new PagedResult<EventDto>(items, paged.TotalRecords, paged.PageNumber, paged.PageSize)));
     }
 
     public async Task<Result<EventDto?>> GetByIdAsync(int id)

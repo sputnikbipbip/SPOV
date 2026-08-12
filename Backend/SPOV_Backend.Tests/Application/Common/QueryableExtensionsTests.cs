@@ -2,6 +2,7 @@ using FluentAssertions;
 using SPOV.Application.Common;
 using SPOV.Domain.Common;
 using SPOV.Domain.Entities;
+using SPOV.Domain.Enums;
 using Xunit;
 
 namespace SPOV_Backend.Tests.Application.Common;
@@ -143,6 +144,34 @@ public sealed class QueryableExtensionsTests
         var result = Articles.ApplySort(" ");
 
         result.Should().BeSameAs(Articles);
+    }
+
+    [Fact]
+    public void ApplySearch_WithMembershipTier_Should_UseDeclaredSearchableProperties()
+    {
+        var tiers = new List<MembershipTier>
+        {
+            new() { Id = 1, Name = "Base", Price = 10, BillingInterval = BillingInterval.Yearly, Benefits = "Acesso a documentos" },
+            new() { Id = 2, Name = "Premium", Price = 20, BillingInterval = BillingInterval.Yearly, Benefits = null }
+        }.AsQueryable();
+
+        var result = tiers.ApplySearch("acesso").ToList();
+
+        result.Should().ContainSingle().Which.Id.Should().Be(1);
+    }
+
+    [Fact]
+    public void ApplySearch_WithSharedDocument_Should_UseDeclaredSearchableProperties()
+    {
+        var documents = new List<SharedDocument>
+        {
+            new() { Id = 1, FileName = "Relatorio 2025.pdf", Category = "Relatórios" },
+            new() { Id = 2, FileName = "Factura.pdf", Category = null }
+        }.AsQueryable();
+
+        var result = documents.ApplySearch("relatorio").ToList();
+
+        result.Should().ContainSingle().Which.Id.Should().Be(1);
     }
 
     private sealed class SearchablePartner : ISearchable

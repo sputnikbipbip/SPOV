@@ -1,23 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { ApiService } from './api.service';
-
-export interface QueryFilter {
-  pageNumber?: number;
-  pageSize?: number;
-  search?: string;
-  sortBy?: string;
-}
-
-export interface PagedResponse<T> {
-  data: T[];
-  pageNumber: number;
-  pageSize: number;
-  totalPages: number;
-  totalRecords: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
+import { QueryFilter, PagedResponse } from './paging';
 
 export interface RegisterPartnerRequest {
   fullName: string;

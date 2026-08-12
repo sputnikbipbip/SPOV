@@ -44,8 +44,10 @@ export class DocumentsComponent implements OnInit {
 
   async ngOnInit() {
     try {
-      this.documents = await this.documentsService.getAll();
+      const response = await this.documentsService.getAll({ pageSize: 50 });
+      this.documents = response.data;
     } catch (e) {
+      this.documents = [];
       this.error = 'Erro ao carregar documentos.';
     } finally {
       this.loading = false;

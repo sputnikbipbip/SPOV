@@ -1,8 +1,10 @@
 using AutoMapper;
+using SPOV.Application.Common;
 using SPOV.Application.DTOs.News;
 using SPOV.Domain.Common;
 using SPOV.Domain.Entities;
 using SPOV.Domain.Interfaces;
+using SPOV.Domain.Specifications;
 
 namespace SPOV.Application.Services;
 
@@ -17,10 +19,13 @@ public class NewsService : INewsService
         _mapper = mapper;
     }
 
-    public async Task<Result<List<NewsPostDto>>> GetAllAsync()
+    public async Task<Result<PagedResponse<NewsPostDto>>> GetAllAsync(QueryFilter queryFilter, CancellationToken ct)
     {
-        var news = await _newsRepository.GetAllAsync();
-        return Result<List<NewsPostDto>>.Success(_mapper.Map<List<NewsPostDto>>(news));
+        var paged = await _newsRepository.GetAllAsync(queryFilter, ct);
+        var items = _mapper.Map<List<NewsPostDto>>(paged.Items);
+
+        return Result<PagedResponse<NewsPostDto>>.Success(
+            PagedResponseBuilder.From(new PagedResult<NewsPostDto>(items, paged.TotalRecords, paged.PageNumber, paged.PageSize)));
     }
 
     public async Task<Result<NewsPostDto?>> GetByIdAsync(int id)

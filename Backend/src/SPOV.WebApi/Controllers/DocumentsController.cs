@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SPOV.Application.Services;
 using SPOV.Domain.Enums;
+using SPOV.Domain.Specifications;
 using SPOV.WebApi.Extensions;
 
 namespace SPOV.WebApi.Controllers;
@@ -20,11 +21,11 @@ public class DocumentsController : ControllerBase
     }
 
     [HttpGet(Name = "GetDocuments")]
-    public async Task<IActionResult> GetDocuments()
+    public async Task<IActionResult> GetDocuments([FromQuery] QueryFilter filter)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var isAdmin = User.IsInRole(Roles.Administrator);
-        var result = await _documentService.GetDocumentsAsync(userId, isAdmin);
+        var result = await _documentService.GetDocumentsAsync(userId, isAdmin, filter, HttpContext.RequestAborted);
         return result.ToActionResult();
     }
 }

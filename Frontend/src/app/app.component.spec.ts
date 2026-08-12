@@ -39,7 +39,9 @@ describe('AppComponent', () => {
     req.flush({ id: '1', email: 'admin@spov.pt', roles: ['Administrator'] });
     await nav;
     fixture.detectChanges();
-    httpMock.expectOne('/api/events').flush([]);
+    httpMock.expectOne((req: any) => req.url.split('?')[0] === '/api/events').flush({
+      data: [], pageNumber: 1, pageSize: 50, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false,
+    });
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-header')).toBeNull();
     expect(el.querySelector('app-footer')).toBeNull();

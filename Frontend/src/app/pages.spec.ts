@@ -206,12 +206,18 @@ describe('PartnerProfileComponent', () => {
 });
 
 describe('EventsComponent', () => {
+  const emptyPaged = { data: [], pageNumber: 1, pageSize: 50, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false };
+  const eventsPaged = {
+    data: [{ id: 1, title: 'Test Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false }],
+    pageNumber: 1, pageSize: 50, totalPages: 1, totalRecords: 1, hasNextPage: false, hasPreviousPage: false,
+  };
+
   it('shows empty state when no events', () => {
     TestBed.configureTestingModule({ imports: [EventsComponent], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)] });
     const fixture = TestBed.createComponent(EventsComponent);
     const httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    httpMock.expectOne('/api/events').flush([]);
+    httpMock.expectOne((req: any) => req.url.split('?')[0] === '/api/events').flush(emptyPaged);
     expect(fixture.nativeElement.textContent).toContain('Ainda não há eventos');
   });
 
@@ -220,8 +226,8 @@ describe('EventsComponent', () => {
     const fixture = TestBed.createComponent(EventsComponent);
     const httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    const req = httpMock.expectOne('/api/events');
-    req.flush([{ id: 1, title: 'Test Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false }]);
+    const req = httpMock.expectOne((eventReq: any) => eventReq.url.split('?')[0] === '/api/events');
+    req.flush(eventsPaged);
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Test Event');
@@ -316,12 +322,18 @@ describe('LegalComponent', () => {
 });
 
 describe('DocumentsComponent', () => {
+  const emptyPaged = { data: [], pageNumber: 1, pageSize: 50, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false };
+  const documentsPaged = {
+    data: [{ id: 1, fileName: 'relatorio.pdf', filePath: '/uploads/relatorio.pdf', category: 'Relatórios', uploadDate: '2026-01-01', ownerId: null }],
+    pageNumber: 1, pageSize: 50, totalPages: 1, totalRecords: 1, hasNextPage: false, hasPreviousPage: false,
+  };
+
   it('shows empty state when no documents', async () => {
     TestBed.configureTestingModule({ imports: [DocumentsComponent], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)] });
     const fixture = TestBed.createComponent(DocumentsComponent);
     const httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    httpMock.expectOne('/api/documents').flush([]);
+    httpMock.expectOne((req: any) => req.url.split('?')[0] === '/api/documents').flush(emptyPaged);
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Nenhum documento disponível');
@@ -332,8 +344,8 @@ describe('DocumentsComponent', () => {
     const fixture = TestBed.createComponent(DocumentsComponent);
     const httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    const req = httpMock.expectOne('/api/documents');
-    req.flush([{ id: 1, fileName: 'relatorio.pdf', filePath: '/uploads/relatorio.pdf', category: 'Relatórios', uploadDate: '2026-01-01', ownerId: null }]);
+    const req = httpMock.expectOne((docReq: any) => docReq.url.split('?')[0] === '/api/documents');
+    req.flush(documentsPaged);
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('relatorio.pdf');
@@ -395,10 +407,16 @@ describe('AdminLoginComponent', () => {
 });
 
 describe('AdminEventsComponent', () => {
+  const emptyPaged = { data: [], pageNumber: 1, pageSize: 50, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false };
+  const eventsPaged = {
+    data: [{ id: 1, title: 'Admin Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', location: null, ceCredits: null, isMembersOnly: false }],
+    pageNumber: 1, pageSize: 50, totalPages: 1, totalRecords: 1, hasNextPage: false, hasPreviousPage: false,
+  };
+
   it('shows empty state when no events', async () => {
     TestBed.configureTestingModule({ imports: [AdminEventsComponent], providers: [provideHttpClient()] });
     const svc = TestBed.inject(EventsService);
-    jest.spyOn(svc, 'getAll').mockResolvedValue([]);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(emptyPaged);
     const fixture = TestBed.createComponent(AdminEventsComponent);
     fixture.detectChanges();
     await microtaskTick();
@@ -409,7 +427,7 @@ describe('AdminEventsComponent', () => {
   it('renders events list', async () => {
     TestBed.configureTestingModule({ imports: [AdminEventsComponent], providers: [provideHttpClient()] });
     const svc = TestBed.inject(EventsService);
-    jest.spyOn(svc, 'getAll').mockResolvedValue([{ id: 1, title: 'Admin Event', description: 'Desc', startDate: '2026-01-01', endDate: '2026-01-02', ceCredits: null, isMembersOnly: false }]);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(eventsPaged);
     const fixture = TestBed.createComponent(AdminEventsComponent);
     fixture.detectChanges();
     await microtaskTick();

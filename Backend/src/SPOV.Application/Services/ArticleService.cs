@@ -1,8 +1,10 @@
 using AutoMapper;
+using SPOV.Application.Common;
 using SPOV.Application.DTOs.Articles;
 using SPOV.Domain.Common;
 using SPOV.Domain.Entities;
 using SPOV.Domain.Interfaces;
+using SPOV.Domain.Specifications;
 
 namespace SPOV.Application.Services;
 
@@ -17,10 +19,13 @@ public class ArticleService : IArticleService
         _mapper = mapper;
     }
 
-    public async Task<Result<List<ArticleDto>>> GetAllAsync()
+    public async Task<Result<PagedResponse<ArticleDto>>> GetAllAsync(QueryFilter queryFilter, CancellationToken ct)
     {
-        var articles = await _articleRepository.GetAllAsync();
-        return Result<List<ArticleDto>>.Success(_mapper.Map<List<ArticleDto>>(articles));
+        var paged = await _articleRepository.GetAllAsync(queryFilter, ct);
+        var items = _mapper.Map<List<ArticleDto>>(paged.Items);
+
+        return Result<PagedResponse<ArticleDto>>.Success(
+            PagedResponseBuilder.From(new PagedResult<ArticleDto>(items, paged.TotalRecords, paged.PageNumber, paged.PageSize)));
     }
 
     public async Task<Result<ArticleDto?>> GetByIdAsync(int id)

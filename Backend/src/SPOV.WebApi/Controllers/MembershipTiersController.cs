@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SPOV.Application.Services;
+using SPOV.Domain.Specifications;
 using SPOV.WebApi.Extensions;
 
 namespace SPOV.WebApi.Controllers;
@@ -17,9 +18,9 @@ public class MembershipTiersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] QueryFilter filter)
     {
-        var result = await _tierService.GetAllAsync();
+        var result = await _tierService.GetAllAsync(filter, HttpContext.RequestAborted);
         return result.ToActionResult();
     }
 

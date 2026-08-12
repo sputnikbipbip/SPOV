@@ -70,7 +70,8 @@ export class EventsComponent implements OnInit {
 
   async ngOnInit() {
     try {
-      this.events = await this.eventsService.getAll();
+      const response = await this.eventsService.getAll({ pageSize: 50 });
+      this.events = response.data;
     } catch {
       this.events = [];
     }

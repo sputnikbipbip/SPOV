@@ -100,7 +100,8 @@ export class AdminEventsComponent implements OnInit {
 
   private async loadEvents() {
     try {
-      this.events = await this.eventsService.getAll();
+      const response = await this.eventsService.getAll({ pageSize: 50 });
+      this.events = response.data;
     } catch {
       this.error = 'Erro ao carregar eventos.';
     }

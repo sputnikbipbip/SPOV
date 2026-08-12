@@ -6,6 +6,7 @@ using SPOV.Application.Mappings;
 using SPOV.Application.Services;
 using SPOV.Domain.Entities;
 using SPOV.Domain.Interfaces;
+using SPOV.Domain.Specifications;
 using FluentAssertions;
 
 namespace SPOV_Backend.Tests.Application.Services;
@@ -24,20 +25,25 @@ public sealed class NewsServiceTests
     }
 
     [Fact]
-    public async Task GetAllAsync_Should_ReturnAllNews()
+    public async Task GetAllAsync_Should_ReturnPagedNewsWithMetadata()
     {
         var news = new List<NewsPost>
         {
             new() { Id = 1, Title = "First", Body = "Body 1", PublishedAt = DateTime.UtcNow },
-            new() { Id = 2, Title = "Second", Body = "Body 2", PublishedAt = DateTime.UtcNow }
+            new() { Id = 2, Title = "Second", Body = "Body 2", PublishedAt = DateTime.UtcNow },
+            new() { Id = 3, Title = "Third", Body = "Body 3", PublishedAt = DateTime.UtcNow }
         };
-        _newsRepository.GetAllAsync().Returns(news);
+        _newsRepository.GetAllAsync(Arg.Any<QueryFilter>(), Arg.Any<CancellationToken>())
+            .Returns(new PagedResult<NewsPost>(news, news.Count, 2, 2));
 
-        var result = await _sut.GetAllAsync();
+        var result = await _sut.GetAllAsync(new QueryFilter(), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Data.Should().HaveCount(2);
-        result.Data![0].Title.Should().Be("First");
+        result.Data!.Data.Should().HaveCount(3);
+        result.Data.Data[0].Title.Should().Be("First");
+        result.Data.PageNumber.Should().Be(2);
+        result.Data.TotalRecords.Should().Be(3);
+        result.Data.TotalPages.Should().Be(2);
     }
 
     [Fact]

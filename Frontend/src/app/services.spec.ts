@@ -175,7 +175,21 @@ describe('EventsService', () => {
 
   it('getAll sends GET to /api/events', async () => {
     const promise = service.getAll();
-    httpMock.expectOne('/api/events').flush([]);
+    const req = httpMock.expectOne('/api/events');
+    expect(req.request.method).toBe('GET');
+    req.flush({ data: [], pageNumber: 1, pageSize: 10, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false });
+    const result = await promise;
+    expect(result.data).toEqual([]);
+  });
+
+  it('getAll forwards paging params', async () => {
+    const promise = service.getAll({ pageNumber: 2, pageSize: 25, search: 'webinar', sortBy: 'title desc' });
+    const req = httpMock.expectOne((r: any) => r.url.startsWith('/api/events'));
+    expect(req.request.params.get('PageNumber')).toBe('2');
+    expect(req.request.params.get('PageSize')).toBe('25');
+    expect(req.request.params.get('Search')).toBe('webinar');
+    expect(req.request.params.get('SortBy')).toBe('title desc');
+    req.flush({ data: [], pageNumber: 2, pageSize: 25, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false });
     await promise;
   });
 
@@ -280,10 +294,10 @@ describe('DocumentsService', () => {
     const promise = service.getAll();
     const req = httpMock.expectOne('/api/documents');
     expect(req.request.method).toBe('GET');
-    req.flush([{ id: 1, fileName: 'test.pdf', filePath: '/uploads/test.pdf', category: null, uploadDate: '2026-01-01', ownerId: null }]);
+    req.flush({ data: [{ id: 1, fileName: 'test.pdf', filePath: '/uploads/test.pdf', category: null, uploadDate: '2026-01-01', ownerId: null }], pageNumber: 1, pageSize: 10, totalPages: 1, totalRecords: 1, hasNextPage: false, hasPreviousPage: false });
     const result = await promise;
-    expect(result.length).toBe(1);
-    expect(result[0].fileName).toBe('test.pdf');
+    expect(result.data.length).toBe(1);
+    expect(result.data[0].fileName).toBe('test.pdf');
   });
 });
 
