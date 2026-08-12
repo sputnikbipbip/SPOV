@@ -33,7 +33,9 @@ public class MappingProfile : Profile
             .ForMember(d => d.BillingInterval, o => o.MapFrom(s => s.BillingInterval.ToString()));
         CreateMap<Payment, PaymentDto>();
         CreateMap<Event, EventDto>();
-        CreateMap<EventRegistration, EventRegistrationDto>();
+        CreateMap<EventRegistration, EventRegistrationDto>()
+            .ForMember(d => d.PartnerFullName, o => o.Ignore())
+            .ForMember(d => d.PartnerEmail, o => o.Ignore());
         CreateMap<EventRegistration, PartnerRegistrationDto>()
             .ForMember(d => d.EventTitle, o => o.Ignore())
             .ForMember(d => d.EventStartDate, o => o.Ignore())

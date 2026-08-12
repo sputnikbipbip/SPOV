@@ -10,19 +10,37 @@ public class EventRegistrationService : IEventRegistrationService
 {
     private readonly IEventRegistrationRepository _registrationRepository;
     private readonly IEventRepository _eventRepository;
+    private readonly IPartnerRepository _partnerRepository;
     private readonly IMapper _mapper;
 
-    public EventRegistrationService(IEventRegistrationRepository registrationRepository, IEventRepository eventRepository, IMapper mapper)
+    public EventRegistrationService(
+        IEventRegistrationRepository registrationRepository,
+        IEventRepository eventRepository,
+        IPartnerRepository partnerRepository,
+        IMapper mapper)
     {
         _registrationRepository = registrationRepository;
         _eventRepository = eventRepository;
+        _partnerRepository = partnerRepository;
         _mapper = mapper;
     }
 
     public async Task<Result<List<EventRegistrationDto>>> GetByEventIdAsync(int eventId)
     {
         var registrations = await _registrationRepository.GetByEventIdAsync(eventId);
-        return Result<List<EventRegistrationDto>>.Success(_mapper.Map<List<EventRegistrationDto>>(registrations));
+        var dtos = _mapper.Map<List<EventRegistrationDto>>(registrations);
+
+        foreach (var dto in dtos)
+        {
+            var partner = await _partnerRepository.GetByIdAsync(dto.PartnerId);
+            if (partner is not null)
+            {
+                dto.PartnerFullName = partner.FullName;
+                dto.PartnerEmail = partner.Email;
+            }
+        }
+
+        return Result<List<EventRegistrationDto>>.Success(dtos);
     }
 
     public async Task<Result<List<EventRegistrationDto>>> GetByPartnerIdAsync(int partnerId)
