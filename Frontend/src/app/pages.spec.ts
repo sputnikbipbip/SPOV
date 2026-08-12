@@ -15,6 +15,7 @@ import { EventComponent } from './pages/event.component';
 import { ContactsComponent } from './pages/contacts.component';
 import { ThankYouComponent } from './pages/thank-you.component';
 import { LegalComponent } from './pages/legal.component';
+import { NotFoundComponent } from './pages/not-found.component';
 import { AdminLoginComponent } from './pages/admin-login.component';
 import { AdminEventsComponent } from './pages/admin-events.component';
 import { AdminPartnersComponent } from './pages/admin-partners.component';
@@ -406,6 +407,25 @@ describe('ContactsComponent', () => {
     const iframe = fixture.nativeElement.querySelector('iframe');
     expect(iframe).not.toBeNull();
     expect(iframe.title).toContain('SPOV');
+  });
+});
+
+describe('NotFoundComponent', () => {
+  let fixture: ComponentFixture<NotFoundComponent>;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [NotFoundComponent], providers: [provideRouter(routes)] });
+    fixture = TestBed.createComponent(NotFoundComponent);
+    fixture.detectChanges();
+  });
+
+  it('renders not found message', () => {
+    expect(fixture.nativeElement.textContent).toContain('Página não encontrada');
+  });
+
+  it('links back to the home page', () => {
+    const link = fixture.nativeElement.querySelector('a[routerLink="/"]') as HTMLAnchorElement;
+    expect(link).not.toBeNull();
   });
 });
 

@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { routes } from './app.routes';
+import { NotFoundComponent } from './pages/not-found.component';
 
 describe('App Routes', () => {
   let router: Router;
@@ -46,9 +47,11 @@ describe('App Routes', () => {
     }
   });
 
-  it('redirects unknown paths to /', async () => {
+  it('renders not found for unknown paths', async () => {
     const route = await router.navigateByUrl('/nonexistent');
     expect(route).toBe(true);
-    expect(router.url).toBe('/');
+    expect(router.url).toBe('/nonexistent');
+    const component = router.routerState.snapshot.root.firstChild?.component;
+    expect(component).toBe(NotFoundComponent);
   });
 });

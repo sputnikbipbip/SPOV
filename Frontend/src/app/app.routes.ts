@@ -13,6 +13,7 @@ import { EventComponent } from './pages/event.component';
 import { ContactsComponent } from './pages/contacts.component';
 import { LegalComponent } from './pages/legal.component';
 import { ThankYouComponent } from './pages/thank-you.component';
+import { NotFoundComponent } from './pages/not-found.component';
 import { AdminLoginComponent } from './pages/admin-login.component';
 import { AdminEventsComponent } from './pages/admin-events.component';
 import { AdminPartnersComponent } from './pages/admin-partners.component';
@@ -45,5 +46,5 @@ export const routes: Routes = [
     { path: 'events', component: AdminEventsComponent, title: 'Gerir Eventos - SPOV Admin' },
     { path: 'partners', component: AdminPartnersComponent, title: 'Gerir Sócios - SPOV Admin' }
   ] },
-  { path: '**', redirectTo: '' }
+  { path: '**', component: NotFoundComponent, title: 'Página não encontrada - SPOV' }
 ];
