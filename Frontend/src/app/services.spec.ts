@@ -110,6 +110,24 @@ describe('PartnersService', () => {
     expect(result.data).toEqual([]);
   });
 
+  it('getAll forwards MembershipStatus param', async () => {
+    const promise = service.getAll({ membershipStatus: 'Pending' });
+    const req = httpMock.expectOne((r: any) => r.url.startsWith('/api/partners'));
+    expect(req.request.params.get('MembershipStatus')).toBe('Pending');
+    req.flush({ data: [], pageNumber: 1, pageSize: 10, totalPages: 0, totalRecords: 0, hasNextPage: false, hasPreviousPage: false });
+    await promise;
+  });
+
+  it('getById sends GET to /api/partners/{id}/profile', async () => {
+    const promise = service.getById(3);
+    const req = httpMock.expectOne('/api/partners/3/profile');
+    expect(req.request.method).toBe('GET');
+    req.flush({ id: 3, fullName: 'John Doe', email: 'john@test.com', phone: '+351900000000', partnerType: 'Professional', membershipStatus: 'Active', initiationFee: 30, quotaValue: 50, totalAmount: 80, payments: [] });
+    const result = await promise;
+    expect(result.id).toBe(3);
+    expect(result.email).toBe('john@test.com');
+  });
+
   it('approve sends POST to /api/partners/{id}/approve', async () => {
     const promise = service.approve(5);
     const req = httpMock.expectOne('/api/partners/5/approve');

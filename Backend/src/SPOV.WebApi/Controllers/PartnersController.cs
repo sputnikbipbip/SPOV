@@ -31,6 +31,14 @@ public class PartnersController : ControllerBase
     }
 
     [Authorize(Policy = "AdminOnly")]
+    [HttpGet("{id}/profile")]
+    public async Task<IActionResult> GetAdminProfile(int id)
+    {
+        var result = await _partnerService.GetAdminProfileAsync(id);
+        return result.ToActionResult();
+    }
+
+    [Authorize(Policy = "AdminOnly")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {

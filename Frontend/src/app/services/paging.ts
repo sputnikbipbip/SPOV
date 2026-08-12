@@ -3,6 +3,7 @@ export interface QueryFilter {
   pageSize?: number;
   search?: string;
   sortBy?: string;
+  membershipStatus?: string;
 }
 
 export interface PagedResponse<T> {

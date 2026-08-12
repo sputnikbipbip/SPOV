@@ -442,6 +442,13 @@ describe('AdminPartnersComponent', () => {
     data: [{ id: 1, fullName: 'John Doe', membershipStatus: 'Pending', joinedAt: '2025-06-01', userId: 'abc', clinicName: null, specialization: null, country: null, membershipTierId: null, membershipTierName: null, membershipExpiresAt: null }],
     pageNumber: 1, pageSize: 10, totalPages: 1, totalRecords: 1, hasNextPage: false, hasPreviousPage: false
   };
+  const detailProfile = {
+    id: 1, fullName: 'John Doe', email: 'john@test.com', phone: '+351900000000', taxId: null, birthDate: null,
+    address: null, city: null, zipCode: null, country: null, academicQualifications: null, professionalCardNumber: null,
+    profession: null, companyName: null, companyPhone: null, observations: null, paymentProofUrl: null,
+    initiationFee: 30, quotaValue: 50, totalAmount: 80, partnerType: 'Professional', membershipStatus: 'Pending',
+    membershipTierId: null, membershipTierName: null, joinedAt: '2025-06-01', membershipExpiresAt: null, payments: []
+  };
 
   it('shows empty state when no partners', async () => {
     TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
@@ -507,5 +514,86 @@ describe('AdminPartnersComponent', () => {
     const buttons = fixture.nativeElement.querySelectorAll('.pagination button');
     expect(buttons[0].disabled).toBe(true);
     expect(buttons[1].disabled).toBe(false);
+  });
+
+  it('renders search box and status filter', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(emptyPagedResponse);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('input[type="search"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('select')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Todos os estados');
+  });
+
+  it('reloads with search and status when filters applied', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(emptyPagedResponse);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    const comp = fixture.componentInstance as any;
+    comp.searchTerm = 'John';
+    comp.statusFilter = 'Pending';
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('.admin-filters button').click();
+    await microtaskTick();
+    expect(svc.getAll).toHaveBeenCalledWith({ pageNumber: 1, pageSize: 10, search: 'John', membershipStatus: 'Pending' });
+  });
+
+  it('reloads when status select changes', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(emptyPagedResponse);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    const comp = fixture.componentInstance as any;
+    comp.statusFilter = 'Active';
+    const select = fixture.nativeElement.querySelector('select');
+    select.value = 'Active';
+    select.dispatchEvent(new Event('change'));
+    await microtaskTick();
+    expect(svc.getAll).toHaveBeenCalledWith({ pageNumber: 1, pageSize: 10, search: undefined, membershipStatus: 'Active' });
+  });
+
+  it('opens details modal with profile info', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(singlePagedResponse);
+    jest.spyOn(svc, 'getById').mockResolvedValue(detailProfile);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const detailsButton = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b: HTMLButtonElement) => b.textContent?.trim() === 'Ver detalhes');
+    (detailsButton as HTMLButtonElement).click();
+    await microtaskTick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.modal')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('john@test.com');
+    expect(fixture.nativeElement.textContent).toContain('+351900000000');
+  });
+
+  it('closes details modal', async () => {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue(singlePagedResponse);
+    jest.spyOn(svc, 'getById').mockResolvedValue(detailProfile);
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    const detailsButton = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b: HTMLButtonElement) => b.textContent?.trim() === 'Ver detalhes');
+    (detailsButton as HTMLButtonElement).click();
+    await microtaskTick();
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('.modal-close').click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.modal')).toBeNull();
   });
 });

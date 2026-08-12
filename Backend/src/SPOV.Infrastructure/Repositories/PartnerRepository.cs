@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SPOV.Application.Common;
 using SPOV.Domain.Entities;
+using SPOV.Domain.Enums;
 using SPOV.Domain.Interfaces;
 using SPOV.Domain.Specifications;
 using SPOV.Infrastructure.Data;
@@ -26,6 +27,12 @@ public class PartnerRepository : IPartnerRepository
             .Include(p => p.MembershipTier)
             .ApplySearch(queryFilter.Search)
             .ApplySort(queryFilter.SortBy);
+
+        if (!string.IsNullOrWhiteSpace(queryFilter.MembershipStatus)
+            && Enum.TryParse<MembershipStatus>(queryFilter.MembershipStatus, true, out var status))
+        {
+            query = query.Where(p => p.MembershipStatus == status);
+        }
 
         var totalRecords = await query.CountAsync(ct);
         var items = await query

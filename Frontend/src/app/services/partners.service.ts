@@ -110,7 +110,12 @@ export class PartnersService extends ApiService {
     if (filter?.pageSize) params = params.set('PageSize', filter.pageSize.toString());
     if (filter?.search) params = params.set('Search', filter.search);
     if (filter?.sortBy) params = params.set('SortBy', filter.sortBy);
+    if (filter?.membershipStatus) params = params.set('MembershipStatus', filter.membershipStatus);
     return this.get('/api/partners', params);
+  }
+
+  getById(id: number): Promise<PartnerProfileDto> {
+    return this.get(`/api/partners/${id}/profile`);
   }
 
   approve(id: number): Promise<PartnerDto> {

@@ -296,6 +296,121 @@ public sealed class PartnerAuthFlowTests
         second.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
+    [Fact]
+    public async Task GetPartners_WithMembershipStatusFilter_Should_ReturnOnlyPending()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"partner-filter-{Guid.NewGuid():N}@spov.pt";
+
+        await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Filter Me",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 000",
+            partnerType = "Professional",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+
+        var adminLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "admin@spov.pt",
+            password = "Admin123!"
+        });
+        var adminToken = await adminLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken!.AccessToken);
+
+        var listResponse = await client.GetAsync("/api/partners?MembershipStatus=Pending");
+
+        listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var paged = await listResponse.Content.ReadFromJsonAsync<PagedPartnersResponse>();
+        paged.Should().NotBeNull();
+        paged!.Data.Should().NotBeEmpty();
+        paged.Data.Should().OnlyContain(p => p.MembershipStatus == "Pending");
+    }
+
+    [Fact]
+    public async Task GetPartnerProfile_AsAdmin_Should_ReturnFullProfile()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"partner-detail-{Guid.NewGuid():N}@spov.pt";
+
+        var registerResponse = await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Detail View",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 009",
+            partnerType = "Professional",
+            taxId = "987654321",
+            city = "Coimbra",
+            profession = "Veterinary Oncologist",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var registered = await registerResponse.Content.ReadFromJsonAsync<PartnerProfileResponse>();
+
+        var adminLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "admin@spov.pt",
+            password = "Admin123!"
+        });
+        var adminToken = await adminLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken!.AccessToken);
+
+        var profileResponse = await client.GetAsync($"/api/partners/{registered!.Id}/profile");
+
+        profileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var profile = await profileResponse.Content.ReadFromJsonAsync<PartnerProfileResponse>();
+        profile.Should().NotBeNull();
+        profile!.FullName.Should().Be("Detail View");
+        profile.Email.Should().Be(email);
+        profile.Phone.Should().Be("+351 900 000 009");
+        profile.TaxId.Should().Be("987654321");
+        profile.MembershipStatus.Should().Be("Pending");
+    }
+
+    [Fact]
+    public async Task GetPartnerProfile_AsPartner_Should_ReturnForbidden()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"partner-detail-forbidden-{Guid.NewGuid():N}@spov.pt";
+
+        await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Not Allowed",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 000",
+            partnerType = "Professional",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+
+        var partnerLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email,
+            password = "Partner123!"
+        });
+        var partnerToken = await partnerLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", partnerToken!.AccessToken);
+
+        var profileResponse = await client.GetAsync("/api/partners/1/profile");
+
+        profileResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
     private sealed class LoginResponse
     {
         public string AccessToken { get; set; } = string.Empty;
@@ -326,5 +441,10 @@ public sealed class PartnerAuthFlowTests
         public string PartnerType { get; set; } = string.Empty;
         public string MembershipStatus { get; set; } = string.Empty;
         public List<object> Payments { get; set; } = [];
+    }
+
+    private sealed class PagedPartnersResponse
+    {
+        public List<PartnerDtoResponse> Data { get; set; } = [];
     }
 }

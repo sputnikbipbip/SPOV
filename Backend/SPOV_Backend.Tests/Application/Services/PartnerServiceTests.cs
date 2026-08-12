@@ -128,4 +128,48 @@ public sealed class PartnerServiceTests
         result.Data.Should().NotBeNull();
         result.Data!.Payments.Should().HaveCount(1);
     }
+
+    [Fact]
+    public async Task GetAdminProfileAsync_Should_ReturnFullProfileWithPayments()
+    {
+        var partner = new Partner
+        {
+            Id = 7,
+            FullName = "Admin View",
+            Email = "adminview@spov.pt",
+            Phone = "+351 900 000 007",
+            TaxId = "123456789",
+            City = "Porto",
+            Profession = "Médico Veterinário",
+            MembershipStatus = MembershipStatus.Pending,
+            JoinedAt = DateTime.UtcNow
+        };
+        var payments = new List<Payment>
+        {
+            new() { Id = 1, PartnerId = 7, Amount = 80, Currency = "EUR", Status = "Pending", Provider = "MB" }
+        };
+        _partnerRepository.GetByIdAsync(7).Returns(partner);
+        _paymentRepository.GetByPartnerIdAsync(7).Returns(payments);
+
+        var result = await _sut.GetAdminProfileAsync(7);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data!.Id.Should().Be(7);
+        result.Data.TaxId.Should().Be("123456789");
+        result.Data.Profession.Should().Be("Médico Veterinário");
+        result.Data.MembershipStatus.Should().Be("Pending");
+        result.Data.Payments.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task GetAdminProfileAsync_Should_ReturnNotFound_WhenMissing()
+    {
+        _partnerRepository.GetByIdAsync(99).Returns((Partner?)null);
+
+        var result = await _sut.GetAdminProfileAsync(99);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Type.Should().Be(ErrorType.NotFound);
+    }
 }
