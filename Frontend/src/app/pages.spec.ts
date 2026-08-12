@@ -596,4 +596,58 @@ describe('AdminPartnersComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.modal')).toBeNull();
   });
+
+  function partnerRowWithExpiry(membershipExpiresAt: string | null) {
+    return {
+      id: 1, fullName: 'Jane Doe', membershipStatus: 'Active', joinedAt: '2025-01-01', userId: 'u1',
+      clinicName: null, specialization: null, country: null, membershipTierId: null, membershipTierName: null,
+      membershipExpiresAt
+    };
+  }
+
+  function daysFromNow(days: number): string {
+    return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+  }
+
+  async function renderPartnerRow(membershipExpiresAt: string | null) {
+    TestBed.configureTestingModule({ imports: [AdminPartnersComponent], providers: [provideHttpClient()] });
+    const svc = TestBed.inject(PartnersService);
+    jest.spyOn(svc, 'getAll').mockResolvedValue({
+      data: [partnerRowWithExpiry(membershipExpiresAt)],
+      pageNumber: 1, pageSize: 10, totalPages: 1, totalRecords: 1, hasNextPage: false, hasPreviousPage: false
+    });
+    const fixture = TestBed.createComponent(AdminPartnersComponent);
+    fixture.detectChanges();
+    await microtaskTick();
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('shows subscription expiration date in list row', async () => {
+    const fixture = await renderPartnerRow(daysFromNow(10));
+    expect(fixture.nativeElement.textContent).toContain('Expira em');
+    expect(fixture.nativeElement.textContent).toContain('Jane Doe');
+  });
+
+  it('shows placeholder when no expiration date', async () => {
+    const fixture = await renderPartnerRow(null);
+    expect(fixture.nativeElement.textContent).toContain('Expira em —');
+  });
+
+  it('marks expired subscription in red', async () => {
+    const fixture = await renderPartnerRow(daysFromNow(-10));
+    expect(fixture.nativeElement.querySelector('.event-row-dates .text-danger')).not.toBeNull();
+  });
+
+  it('marks expiring soon subscription in amber', async () => {
+    const fixture = await renderPartnerRow(daysFromNow(10));
+    expect(fixture.nativeElement.querySelector('.event-row-dates .text-warning')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.event-row-dates .text-danger')).toBeNull();
+  });
+
+  it('leaves long-dated subscription neutral', async () => {
+    const fixture = await renderPartnerRow(daysFromNow(90));
+    expect(fixture.nativeElement.querySelector('.event-row-dates .text-danger')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.event-row-dates .text-warning')).toBeNull();
+  });
 });

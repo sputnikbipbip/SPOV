@@ -31,6 +31,8 @@ import { PartnersService, PartnerDto, PartnerProfileDto } from '../services/part
       position: absolute; top: 0.5rem; right: 0.75rem; background: none; border: none;
       font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--spov-muted);
     }
+    .text-danger { color: #b42318; font-weight: 600; }
+    .text-warning { color: #b45309; font-weight: 600; }
   `,
   template: `
     <div class="admin-header">
@@ -60,7 +62,10 @@ import { PartnersService, PartnerDto, PartnerProfileDto } from '../services/part
           <div class="event-row-content">
             <div class="event-row-info">
               <strong>{{ partner.fullName }}</strong>
-              <span class="event-row-dates">Sócio desde {{ partner.joinedAt | date:'dd/MM/yyyy' }}</span>
+              <span class="event-row-dates">
+                Sócio desde {{ partner.joinedAt | date:'dd/MM/yyyy' }}
+                · <span [class.text-danger]="expiryClass(partner) === 'expired'" [class.text-warning]="expiryClass(partner) === 'expiring'">Expira em {{ partner.membershipExpiresAt ? (partner.membershipExpiresAt | date:'dd/MM/yyyy') : '—' }}</span>
+              </span>
             </div>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-shrink:0;">
               <span class="badge" [class.badge-yellow]="partner.membershipStatus === 'Pending'" [class.badge-dark]="partner.membershipStatus === 'Active'" [class.badge-outline]="partner.membershipStatus === 'Expired' || partner.membershipStatus === 'Suspended'" style="background:var(--spov-muted);color:var(--spov-white);">
@@ -240,6 +245,14 @@ export class AdminPartnersComponent implements OnInit {
       case 'Suspended': return 'Suspenso';
       default: return status;
     }
+  }
+
+  protected expiryClass(partner: PartnerDto): 'expired' | 'expiring' | '' {
+    if (!partner.membershipExpiresAt) return '';
+    const expires = new Date(partner.membershipExpiresAt);
+    if (expires < new Date()) return 'expired';
+    const daysLeft = Math.ceil((expires.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return daysLeft <= 30 ? 'expiring' : '';
   }
 
   protected async approve(partner: PartnerDto) {
