@@ -404,6 +404,118 @@ public sealed class PartnerAuthFlowTests
         public int ExpiresIn { get; set; }
     }
 
+    [Fact]
+    public async Task CreatePartner_AsAdmin_Should_ReturnCreatedWithActivePartnerAndTempPassword()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var adminLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "admin@spov.pt",
+            password = "Admin123!"
+        });
+        var adminToken = await adminLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken!.AccessToken);
+
+        var email = $"admin-created-{Guid.NewGuid():N}@spov.pt";
+        var createResponse = await client.PostAsJsonAsync("/api/partners", new
+        {
+            fullName = "Manually Added",
+            email,
+            phone = "+351 900 000 777",
+            partnerType = "Professional",
+            joinedAt = "2024-03-01T00:00:00Z",
+            membershipExpiresAt = "2027-03-01T00:00:00Z",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var body = await createResponse.Content.ReadFromJsonAsync<CreatePartnerResponse>();
+        body.Should().NotBeNull();
+        body!.Partner.MembershipStatus.Should().Be("Active");
+        body.Partner.Email.Should().Be(email);
+        body.TemporaryPassword.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task CreatePartner_AsPartner_Should_ReturnForbidden()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"create-forbidden-{Guid.NewGuid():N}@spov.pt";
+        await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Not Allowed",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 000",
+            partnerType = "Professional",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+
+        var partnerLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email,
+            password = "Partner123!"
+        });
+        var partnerToken = await partnerLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", partnerToken!.AccessToken);
+
+        var createResponse = await client.PostAsJsonAsync("/api/partners", new
+        {
+            fullName = "Attempt",
+            email = $"attempt-{Guid.NewGuid():N}@spov.pt",
+            phone = "+351 900 000 001",
+            partnerType = "Professional",
+            joinedAt = "2024-01-01T00:00:00Z"
+        });
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task CreatePartner_WithDuplicateEmail_Should_ReturnConflict()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var adminLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "admin@spov.pt",
+            password = "Admin123!"
+        });
+        var adminToken = await adminLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken!.AccessToken);
+
+        var email = $"duplicate-create-{Guid.NewGuid():N}@spov.pt";
+        var payload = new
+        {
+            fullName = "Duplicated",
+            email,
+            phone = "+351 900 000 002",
+            partnerType = "Professional",
+            joinedAt = "2024-01-01T00:00:00Z"
+        };
+
+        var first = await client.PostAsJsonAsync("/api/partners", payload);
+        first.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var second = await client.PostAsJsonAsync("/api/partners", payload);
+        second.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    private sealed class CreatePartnerResponse
+    {
+        public PartnerProfileResponse Partner { get; set; } = null!;
+        public string TemporaryPassword { get; set; } = string.Empty;
+    }
+
     private sealed class PartnerDtoResponse
     {
         public int Id { get; set; }

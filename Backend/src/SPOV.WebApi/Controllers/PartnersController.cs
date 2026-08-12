@@ -71,6 +71,18 @@ public class PartnersController : ControllerBase
     }
 
     [Authorize(Policy = "AdminOnly")]
+    [HttpPost]
+    public async Task<IActionResult> Create(CreatePartnerRequest request)
+    {
+        var result = await _partnerService.CreateByAdminAsync(request);
+
+        if (result.IsSuccess && result.Data is not null)
+            return Created($"/api/partners/{result.Data.Partner.Id}", result.Data);
+
+        return result.ToActionResult();
+    }
+
+    [Authorize(Policy = "AdminOnly")]
     [HttpPost("{id}/approve")]
     public async Task<IActionResult> Approve(int id)
     {

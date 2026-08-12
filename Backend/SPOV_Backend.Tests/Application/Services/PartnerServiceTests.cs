@@ -172,4 +172,80 @@ public sealed class PartnerServiceTests
         result.IsFailure.Should().BeTrue();
         result.Error!.Type.Should().Be(ErrorType.NotFound);
     }
+
+    [Fact]
+    public async Task CreateByAdminAsync_Should_CreateActivePartnerWithSubscriptionDates()
+    {
+        var joinedAt = new DateTime(2024, 3, 1, 0, 0, 0, DateTimeKind.Utc);
+        var expiresAt = new DateTime(2027, 3, 1, 0, 0, 0, DateTimeKind.Utc);
+        var request = new CreatePartnerRequest
+        {
+            FullName = "Miguel Almeida",
+            Email = "miguel@spov.pt",
+            Phone = "+351 900 000 111",
+            PartnerType = "Professional",
+            JoinedAt = joinedAt,
+            MembershipExpiresAt = expiresAt,
+            MembershipTierId = 2,
+            InitiationFee = 30m,
+            QuotaValue = 50m,
+            TotalAmount = 80m
+        };
+
+        _partnerRepository.GetByEmailAsync(request.Email).Returns((Partner?)null);
+        _identityService.UserExistsByEmailAsync(request.Email).Returns(false);
+        _identityService.CreateUserAsync(request.Email, Arg.Any<string>(), request.FullName)
+            .Returns((true, null, "user-miguel"));
+        _identityService.AddToRoleAsync("user-miguel", Roles.Partner).Returns(true);
+
+        Partner? created = null;
+        _partnerRepository.AddAsync(Arg.Do<Partner>(p => created = p)).Returns(ci => ci.Arg<Partner>());
+
+        var result = await _sut.CreateByAdminAsync(request);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data!.Partner.MembershipStatus.Should().Be("Active");
+        result.Data.Partner.Email.Should().Be(request.Email);
+        result.Data.TemporaryPassword.Should().NotBeNullOrEmpty();
+        result.Data.TemporaryPassword.Should().MatchRegex(
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).{6,}$");
+
+        created.Should().NotBeNull();
+        created!.MembershipStatus.Should().Be(MembershipStatus.Active);
+        created.JoinedAt.Should().Be(joinedAt);
+        created.MembershipExpiresAt.Should().Be(expiresAt);
+        created.MembershipTierId.Should().Be(2);
+        created.UserId.Should().Be("user-miguel");
+
+        await _identityService.Received(1).CreateUserAsync(
+            request.Email, Arg.Is<string>(p => p == result.Data.TemporaryPassword), request.FullName);
+        await _identityService.Received(1).AddToRoleAsync("user-miguel", Roles.Partner);
+    }
+
+    [Fact]
+    public async Task CreateByAdminAsync_Should_ReturnConflict_WhenPartnerEmailExists()
+    {
+        var request = new CreatePartnerRequest { FullName = "Miguel Almeida", Email = "miguel@spov.pt", Phone = "+351 900 000 111", PartnerType = "Professional" };
+        _partnerRepository.GetByEmailAsync(request.Email)
+            .Returns(new Partner { Id = 1, Email = request.Email });
+
+        var result = await _sut.CreateByAdminAsync(request);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Type.Should().Be(ErrorType.Conflict);
+    }
+
+    [Fact]
+    public async Task CreateByAdminAsync_Should_ReturnConflict_WhenUserEmailExists()
+    {
+        var request = new CreatePartnerRequest { FullName = "Miguel Almeida", Email = "miguel@spov.pt", Phone = "+351 900 000 111", PartnerType = "Professional" };
+        _partnerRepository.GetByEmailAsync(request.Email).Returns((Partner?)null);
+        _identityService.UserExistsByEmailAsync(request.Email).Returns(true);
+
+        var result = await _sut.CreateByAdminAsync(request);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Type.Should().Be(ErrorType.Conflict);
+    }
 }

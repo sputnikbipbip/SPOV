@@ -120,6 +120,67 @@ public class PartnerService : IPartnerService
         return Result<PartnerProfileDto>.Success(dto);
     }
 
+    public async Task<Result<CreatePartnerResponse>> CreateByAdminAsync(CreatePartnerRequest request)
+    {
+        var existingPartner = await _partnerRepository.GetByEmailAsync(request.Email);
+        if (existingPartner is not null)
+            return Result<CreatePartnerResponse>.Failure(Error.Conflict("Já existe um sócio registado com este email."));
+
+        var userExists = await _identityService.UserExistsByEmailAsync(request.Email);
+        if (userExists)
+            return Result<CreatePartnerResponse>.Failure(Error.Conflict("Já existe um utilizador com este email."));
+
+        var temporaryPassword = GenerateTemporaryPassword();
+        var (success, error, userId) = await _identityService.CreateUserAsync(
+            request.Email, temporaryPassword, request.FullName);
+        if (!success)
+            return Result<CreatePartnerResponse>.Failure(Error.Validation(error ?? "Erro ao criar utilizador."));
+
+        await _identityService.AddToRoleAsync(userId!, Roles.Partner);
+
+        DateTime? birthDate = null;
+        if (!string.IsNullOrWhiteSpace(request.BirthDate) && DateOnly.TryParse(request.BirthDate, out var parsed))
+            birthDate = parsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        var partner = new Partner
+        {
+            UserId = userId!,
+            FullName = request.FullName,
+            Email = request.Email,
+            Phone = request.Phone,
+            TaxId = request.TaxId,
+            BirthDate = birthDate,
+            Address = request.Address,
+            City = request.City,
+            ZipCode = request.ZipCode,
+            Country = request.Country,
+            AcademicQualifications = request.AcademicQualifications,
+            ProfessionalCardNumber = request.ProfessionalCardNumber,
+            Profession = request.Profession,
+            CompanyName = request.CompanyName,
+            CompanyPhone = request.CompanyPhone,
+            Observations = request.Observations,
+            InitiationFee = request.InitiationFee,
+            QuotaValue = request.QuotaValue,
+            TotalAmount = request.TotalAmount,
+            PartnerType = request.PartnerType == "Student" ? PartnerType.Student : PartnerType.Professional,
+            MembershipStatus = MembershipStatus.Active,
+            MembershipTierId = request.MembershipTierId,
+            JoinedAt = request.JoinedAt,
+            MembershipExpiresAt = request.MembershipExpiresAt
+        };
+
+        var created = await _partnerRepository.AddAsync(partner);
+        var dto = _mapper.Map<PartnerProfileDto>(created);
+        dto.Payments = [];
+
+        return Result<CreatePartnerResponse>.Success(new CreatePartnerResponse
+        {
+            Partner = dto,
+            TemporaryPassword = temporaryPassword
+        });
+    }
+
     public async Task<Result<PartnerDto>> ApproveAsync(int id)
     {
         var partner = await _partnerRepository.GetByIdAsync(id);
@@ -188,6 +249,29 @@ public class PartnerService : IPartnerService
         dto.Payments = _mapper.Map<List<PaymentDto>>(payments);
 
         return Result<PartnerProfileDto>.Success(dto);
+    }
+
+    private static string GenerateTemporaryPassword()
+    {
+        const string upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const string lower = "abcdefghijkmnpqrstuvwxyz";
+        const string digits = "23456789";
+        const string symbols = "!@#$%^&*";
+        var random = Random.Shared;
+
+        var chars = new List<char>
+        {
+            upper[random.Next(upper.Length)],
+            lower[random.Next(lower.Length)],
+            digits[random.Next(digits.Length)],
+            symbols[random.Next(symbols.Length)]
+        };
+
+        const string all = upper + lower + digits + symbols;
+        for (var i = 0; i < 4; i++)
+            chars.Add(all[random.Next(all.Length)]);
+
+        return string.Concat(chars.OrderBy(_ => random.Next()));
     }
 
 }
