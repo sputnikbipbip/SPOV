@@ -66,6 +66,19 @@ using (var scope = app.Services.CreateScope())
     await using var creditsDropCmd = new NpgsqlCommand("ALTER TABLE \"Events\" DROP COLUMN IF EXISTS \"CeCredits\"", conn);
     await creditsDropCmd.ExecuteNonQueryAsync();
 
+    await using var paymentColumnsCmd = new NpgsqlCommand("""
+        ALTER TABLE "Payments"
+        ADD COLUMN IF NOT EXISTS "ProofStorageKey" character varying(500),
+        ADD COLUMN IF NOT EXISTS "ProofFileName" character varying(255),
+        ADD COLUMN IF NOT EXISTS "ProofContentType" character varying(100),
+        ADD COLUMN IF NOT EXISTS "ProofUploadedAt" timestamp with time zone,
+        ADD COLUMN IF NOT EXISTS "ReviewedAt" timestamp with time zone,
+        ADD COLUMN IF NOT EXISTS "ReviewedByUserId" character varying(450),
+        ADD COLUMN IF NOT EXISTS "ReviewNote" character varying(1000),
+        ADD COLUMN IF NOT EXISTS "Version" uuid NOT NULL DEFAULT gen_random_uuid()
+        """, conn);
+    await paymentColumnsCmd.ExecuteNonQueryAsync();
+
     if (!await db.Events.AnyAsync())
     {
         db.Events.AddRange(

@@ -381,6 +381,10 @@ The password you provide is hashed and stored securely. It is never stored in pl
 | Method | Path | Auth | Policy | Who can call | Description |
 |--------|------|------|--------|-------------|-------------|
 | GET | `/api/partners/{partnerId}/payments` | Yes | AdminOnly | **Admin only** | List all payments for a given partner. |
+| POST | `/api/partners/me/payment-proof` | Yes | [Authorize] | Authenticated partner | Upload a PDF, JPEG, or PNG payment proof up to 10 MB. |
+| GET | `/api/partners/{partnerId}/payments/{paymentId}/proof` | Yes | [Authorize] | Owning partner or Admin | Download a payment proof through the authenticated API. |
+| POST | `/api/partners/{partnerId}/payments/{paymentId}/verify` | Yes | AdminOnly | **Admin only** | Verify a submitted proof and activate the partner. |
+| POST | `/api/partners/{partnerId}/payments/{paymentId}/reject` | Yes | AdminOnly | **Admin only** | Reject a submitted proof with an optional partner-visible note. |
 
 ---
 

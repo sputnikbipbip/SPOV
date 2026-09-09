@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using FluentAssertions;
 using Xunit;
 
@@ -37,6 +38,63 @@ public sealed class PartnerAuthFlowTests
         profile.Email.Should().Be(email);
         profile.MembershipStatus.Should().Be("Pending");
         profile.PartnerType.Should().Be("Professional");
+        profile.Payments.Should().ContainSingle(payment => payment.Status == "Pending" && payment.Amount == 80m);
+    }
+
+    [Fact]
+    public async Task Partner_Should_UploadProof_AndAdmin_ShouldVerifyPayment()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"payment-flow-{Guid.NewGuid():N}@spov.pt";
+        var registerResponse = await client.PostAsJsonAsync("/api/partners/register", new
+        {
+            fullName = "Payment Flow",
+            email,
+            password = "Partner123!",
+            phone = "+351 900 000 000",
+            partnerType = "Professional",
+            initiationFee = 30m,
+            quotaValue = 50m,
+            totalAmount = 80m
+        });
+        var registered = await registerResponse.Content.ReadFromJsonAsync<PartnerProfileResponse>();
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new { email, password = "Partner123!" });
+        var partnerLogin = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", partnerLogin!.AccessToken);
+
+        using var form = new MultipartFormDataContent();
+        using var proof = new ByteArrayContent(Encoding.ASCII.GetBytes("%PDF-1.7 test proof"));
+        proof.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        form.Add(proof, "file", "proof.pdf");
+
+        var uploadResponse = await client.PostAsync("/api/partners/me/payment-proof", form);
+
+        uploadResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var submitted = await uploadResponse.Content.ReadFromJsonAsync<PaymentResponse>();
+        submitted.Should().NotBeNull();
+        submitted!.Status.Should().Be("Submitted");
+        submitted.ProofFileName.Should().Be("proof.pdf");
+
+        var adminLogin = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "admin@spov.pt",
+            password = "Admin123!"
+        });
+        var adminToken = await adminLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken!.AccessToken);
+
+        var verifyResponse = await client.PostAsync($"/api/partners/{registered!.Id}/payments/{submitted.Id}/verify", null);
+
+        verifyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", partnerLogin.AccessToken);
+        var profileResponse = await client.GetAsync("/api/partners/my-profile");
+        var profile = await profileResponse.Content.ReadFromJsonAsync<PartnerProfileResponse>();
+        profile!.MembershipStatus.Should().Be("Active");
+        profile.Payments.Should().ContainSingle(payment => payment.Status == "Verified");
     }
 
     [Fact]
@@ -157,7 +215,7 @@ public sealed class PartnerAuthFlowTests
     }
 
     [Fact]
-    public async Task ApprovePartner_AsAdmin_Should_SetStatusToActive()
+    public async Task ApprovePartner_AsAdmin_WithoutVerifiedPayment_Should_ReturnConflict()
     {
         await using var factory = CreateFactory();
         using var client = factory.CreateClient();
@@ -188,10 +246,7 @@ public sealed class PartnerAuthFlowTests
 
         var approveResponse = await client.PostAsync($"/api/partners/{partner!.Id}/approve", null);
 
-        approveResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var approved = await approveResponse.Content.ReadFromJsonAsync<PartnerDtoResponse>();
-        approved.Should().NotBeNull();
-        approved!.MembershipStatus.Should().Be("Active");
+        approveResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
     [Fact]
@@ -572,7 +627,15 @@ public sealed class PartnerAuthFlowTests
         public string? CompanyName { get; set; }
         public string PartnerType { get; set; } = string.Empty;
         public string MembershipStatus { get; set; } = string.Empty;
-        public List<object> Payments { get; set; } = [];
+        public List<PaymentResponse> Payments { get; set; } = [];
+    }
+
+    private sealed class PaymentResponse
+    {
+        public int Id { get; set; }
+        public decimal Amount { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string? ProofFileName { get; set; }
     }
 
     private sealed class PagedPartnersResponse

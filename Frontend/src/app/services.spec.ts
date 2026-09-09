@@ -173,6 +173,42 @@ describe('PartnersService', () => {
     expect(result.fullName).toBe('Updated');
   });
 
+  it('uploadProof sends multipart data to the authenticated partner endpoint', async () => {
+    const file = new File(['%PDF-1.7'], 'proof.pdf', { type: 'application/pdf' });
+    const promise = service.uploadProof(file);
+    const req = httpMock.expectOne('/api/partners/me/payment-proof');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toBeInstanceOf(FormData);
+    expect((req.request.body as FormData).get('file')).toBe(file);
+    req.flush({ id: 8, partnerId: 1, amount: 80, currency: 'EUR', status: 'Submitted', provider: 'BankTransfer', createdAt: '2026-01-01' });
+    const result = await promise;
+    expect(result.status).toBe('Submitted');
+  });
+
+  it('downloadPaymentProof sends an authenticated blob request', async () => {
+    const promise = service.downloadPaymentProof(4, 8);
+    const req = httpMock.expectOne('/api/partners/4/payments/8/proof');
+    expect(req.request.method).toBe('GET');
+    req.flush(new Blob(['proof'], { type: 'application/pdf' }));
+    const result = await promise;
+    expect(result.type).toBe('application/pdf');
+  });
+
+  it('verifyPayment and rejectPayment send the admin review actions', async () => {
+    const verifyPromise = service.verifyPayment(4, 8);
+    const verifyRequest = httpMock.expectOne('/api/partners/4/payments/8/verify');
+    expect(verifyRequest.request.method).toBe('POST');
+    verifyRequest.flush(null);
+    await verifyPromise;
+
+    const rejectPromise = service.rejectPayment(4, 8, 'Ficheiro ilegível.');
+    const rejectRequest = httpMock.expectOne('/api/partners/4/payments/8/reject');
+    expect(rejectRequest.request.method).toBe('POST');
+    expect(rejectRequest.request.body).toEqual({ note: 'Ficheiro ilegível.' });
+    rejectRequest.flush(null);
+    await rejectPromise;
+  });
+
   it('forgotPassword sends POST to /api/auth/forgotPassword', async () => {
     const promise = service.forgotPassword('test@spov.pt');
     const req = httpMock.expectOne('/api/auth/forgotPassword');

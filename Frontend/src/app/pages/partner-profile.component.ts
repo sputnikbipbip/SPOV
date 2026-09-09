@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { PageIntroComponent } from '../shared.components';
 
-import { PartnerProfileDto, PartnersService, UpdatePartnerProfileRequest } from '../services/partners.service';
+import { PartnerProfileDto, PartnersService, PaymentDto, UpdatePartnerProfileRequest } from '../services/partners.service';
 import { EventsService, PartnerRegistrationDto } from '../services/events.service';
 
 @Component({
@@ -29,6 +29,7 @@ import { EventsService, PartnerRegistrationDto } from '../services/events.servic
               <h2>{{ profile()!.fullName }}</h2>
               <span class="badge" [class.badge-yellow]="profile()!.membershipStatus === 'Pending'" [class.badge-dark]="profile()!.membershipStatus === 'Active'">{{ statusLabel() }}</span>
             </div>
+            @if (proofError()) { <div class="form-error-banner">{{ proofError() }}</div> }
 
             <div class="profile-section">
               <h3>Informação Pessoal</h3>
@@ -79,17 +80,25 @@ import { EventsService, PartnerRegistrationDto } from '../services/events.servic
                     <div class="payment-row">
                       <span class="payment-date">{{ p.createdAt | date:'dd/MM/yyyy' }}</span>
                       <span class="payment-amount">€{{ p.amount.toFixed(2) }}</span>
-                      <span class="badge" [class.badge-yellow]="p.status === 'Pending'" [class.badge-dark]="p.status === 'Completed'">{{ p.status }}</span>
+                      <span class="badge" [class.badge-yellow]="p.status === 'Pending' || p.status === 'Submitted'" [class.badge-dark]="p.status === 'Verified' || p.status === 'Completed'" [class.badge-outline]="p.status === 'Rejected'">{{ paymentStatusLabel(p.status) }}</span>
+                      @if (p.proofFileName) {
+                        <button type="button" class="button button-secondary" style="font-size:0.8rem;padding:0.25rem 0.5rem;" [disabled]="proofDownloadingId() === p.id" (click)="downloadProof(p)">{{ proofDownloadingId() === p.id ? 'A descarregar…' : 'Ver comprovativo' }}</button>
+                      }
+                      @if (p.reviewNote) { <small class="form-privacy-note">{{ p.reviewNote }}</small> }
                     </div>
                   }
                 </div>
               }
             </div>
 
-            @if (profile()!.paymentProofUrl) {
+            @if (needsPaymentProof()) {
               <div class="profile-section">
-                <h3>Comprovativo</h3>
-                <p>Comprovativo enviado: <a [href]="profile()!.paymentProofUrl" target="_blank">Ver ficheiro</a></p>
+                <h3>Enviar comprovativo</h3>
+                <p class="form-privacy-note">Aceitamos PDF, JPEG ou PNG até 10 MB.</p>
+                @if (proofSuccess()) { <div class="success-banner">Comprovativo enviado. A aguardar validação.</div> }
+                <input type="file" accept="application/pdf,image/jpeg,image/png" (change)="selectProof($event)">
+                @if (selectedProof()) { <p>{{ selectedProof()!.name }}</p> }
+                <button type="button" class="button button-primary" [disabled]="!selectedProof() || proofUploading()" (click)="uploadProof()">{{ proofUploading() ? 'A enviar…' : 'Enviar comprovativo' }}</button>
               </div>
             }
 
@@ -166,6 +175,11 @@ export class PartnerProfileComponent {
   protected saveSuccess = signal(false);
   protected cancellingId = signal<number | null>(null);
   protected cancelError = signal('');
+  protected selectedProof = signal<File | null>(null);
+  protected proofUploading = signal(false);
+  protected proofDownloadingId = signal<number | null>(null);
+  protected proofError = signal('');
+  protected proofSuccess = signal(false);
   protected readonly editForm = new FormGroup({
     fullName: new FormControl('', { nonNullable: true, validators: Validators.required }),
     phone: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -193,6 +207,19 @@ export class PartnerProfileComponent {
       default: return p.membershipStatus;
     }
   });
+  protected readonly needsPaymentProof = computed(() =>
+    this.profile()?.payments.some(payment => payment.status !== 'Verified') ?? false);
+
+  protected paymentStatusLabel(status: string): string {
+    switch (status) {
+      case 'Pending': return 'Pagamento pendente';
+      case 'Submitted': return 'Em validação';
+      case 'Verified':
+      case 'Completed': return 'Validado';
+      case 'Rejected': return 'Rejeitado';
+      default: return status;
+    }
+  }
 
   async ngOnInit() {
     try {
@@ -286,6 +313,60 @@ export class PartnerProfileComponent {
       this.cancelError.set(e instanceof Error ? e.message : 'Erro ao cancelar inscrição.');
     } finally {
       this.cancellingId.set(null);
+    }
+  }
+
+  protected selectProof(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.selectedProof.set(input.files?.[0] ?? null);
+    this.proofError.set('');
+    this.proofSuccess.set(false);
+  }
+
+  protected async uploadProof() {
+    const profile = this.profile();
+    const file = this.selectedProof();
+    if (!profile || !file) return;
+
+    this.proofUploading.set(true);
+    this.proofError.set('');
+    this.proofSuccess.set(false);
+    try {
+      const payment = await this.partnersService.uploadProof(file);
+      const currentProfile = this.profile();
+      if (currentProfile) {
+        const payments = currentProfile.payments.some(current => current.id === payment.id)
+          ? currentProfile.payments.map(current => current.id === payment.id ? payment : current)
+          : [payment, ...currentProfile.payments];
+        this.profile.set({ ...currentProfile, payments });
+      }
+      this.selectedProof.set(null);
+      this.proofSuccess.set(true);
+    } catch (e) {
+      this.proofError.set(e instanceof Error ? e.message : 'Erro ao enviar comprovativo.');
+    } finally {
+      this.proofUploading.set(false);
+    }
+  }
+
+  protected async downloadProof(payment: PaymentDto) {
+    const profile = this.profile();
+    if (!profile) return;
+
+    this.proofDownloadingId.set(payment.id);
+    this.proofError.set('');
+    try {
+      const blob = await this.partnersService.downloadPaymentProof(profile.id, payment.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = payment.proofFileName ?? 'comprovativo';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      this.proofError.set(e instanceof Error ? e.message : 'Erro ao descarregar comprovativo.');
+    } finally {
+      this.proofDownloadingId.set(null);
     }
   }
 

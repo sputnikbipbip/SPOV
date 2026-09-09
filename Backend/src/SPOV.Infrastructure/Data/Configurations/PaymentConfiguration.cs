@@ -14,6 +14,12 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.Status).IsRequired().HasMaxLength(50);
         builder.Property(p => p.Provider).IsRequired().HasMaxLength(100);
         builder.Property(p => p.ProviderTransactionId).HasMaxLength(200);
+        builder.Property(p => p.ProofStorageKey).HasMaxLength(500);
+        builder.Property(p => p.ProofFileName).HasMaxLength(255);
+        builder.Property(p => p.ProofContentType).HasMaxLength(100);
+        builder.Property(p => p.ReviewedByUserId).HasMaxLength(450);
+        builder.Property(p => p.ReviewNote).HasMaxLength(1000);
+        builder.Property(p => p.Version).IsRequired().IsConcurrencyToken();
         builder.HasOne<Partner>()
             .WithMany()
             .HasForeignKey(p => p.PartnerId);

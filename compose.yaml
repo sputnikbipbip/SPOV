@@ -34,6 +34,8 @@ services:
       ASPNETCORE_URLS: http://0.0.0.0:8080
     ports:
       - "8080:8080"
+    volumes:
+      - payment-proofs:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -55,3 +57,4 @@ services:
 
 volumes:
   pg-data:
+  payment-proofs:

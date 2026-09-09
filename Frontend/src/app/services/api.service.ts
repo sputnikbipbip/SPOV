@@ -48,6 +48,17 @@ export class ApiService {
     }
   }
 
+  protected async getBlob(path: string): Promise<Blob> {
+    try {
+      return await firstValueFrom(this.http.get(`${this.baseUrl}${path}`, {
+        headers: this.getAuthHeaders(),
+        responseType: 'blob',
+      }));
+    } catch (e) {
+      throw this.handleError(e);
+    }
+  }
+
   private handleError(e: unknown): Error {
     if (e instanceof HttpErrorResponse) {
       const msg = e.error?.error ?? e.statusText ?? 'Erro de comunicação com o servidor.';

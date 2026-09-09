@@ -46,6 +46,10 @@ public sealed class PartnerServiceTests
             JoinedAt = DateTime.UtcNow
         };
         _partnerRepository.GetByIdAsync(1).Returns(partner);
+        _paymentRepository.GetByPartnerIdAsync(1).Returns(new List<Payment>
+        {
+            new() { PartnerId = 1, Status = "Verified" }
+        });
 
         var result = await _sut.ApproveAsync(1);
 
@@ -66,6 +70,53 @@ public sealed class PartnerServiceTests
 
         result.IsFailure.Should().BeTrue();
         result.Error!.Type.Should().Be(ErrorType.NotFound);
+    }
+
+    [Fact]
+    public async Task ApproveAsync_Should_RequireVerifiedPayment()
+    {
+        var partner = new Partner { Id = 1, FullName = "Pending", MembershipStatus = MembershipStatus.Pending };
+        _partnerRepository.GetByIdAsync(1).Returns(partner);
+        _paymentRepository.GetByPartnerIdAsync(1).Returns(new List<Payment>
+        {
+            new() { PartnerId = 1, Status = "Submitted" }
+        });
+
+        var result = await _sut.ApproveAsync(1);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Type.Should().Be(ErrorType.Conflict);
+        await _partnerRepository.DidNotReceive().UpdateAsync(Arg.Any<Partner>());
+    }
+
+    [Fact]
+    public async Task RegisterAsync_Should_CalculateFeesOnTheServer()
+    {
+        var request = new RegisterPartnerRequest
+        {
+            FullName = "New Partner",
+            Email = "new@spov.pt",
+            Password = "Partner123!",
+            Phone = "+351 900 000 000",
+            PartnerType = "Professional",
+            InitiationFee = 1m,
+            QuotaValue = 1m,
+            TotalAmount = 2m
+        };
+        _partnerRepository.GetByEmailAsync(request.Email).Returns((Partner?)null);
+        _identityService.UserExistsByEmailAsync(request.Email).Returns(false);
+        _identityService.CreateUserAsync(request.Email, request.Password, request.FullName)
+            .Returns((true, null, "new-user"));
+        _partnerRepository.AddWithPaymentAsync(Arg.Any<Partner>(), Arg.Any<Payment>())
+            .Returns(call => call.Arg<Partner>());
+
+        var result = await _sut.RegisterAsync(request);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.InitiationFee.Should().Be(30m);
+        result.Data.QuotaValue.Should().Be(50m);
+        result.Data.TotalAmount.Should().Be(80m);
+        result.Data.Payments.Should().ContainSingle(payment => payment.Amount == 80m);
     }
 
     [Fact]

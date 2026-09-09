@@ -64,6 +64,27 @@ public class PartnerRepository : IPartnerRepository
         return partner;
     }
 
+    public async Task<Partner> AddWithPaymentAsync(Partner partner, Payment payment)
+    {
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        try
+        {
+            _db.Partners.Add(partner);
+            await _db.SaveChangesAsync();
+
+            payment.PartnerId = partner.Id;
+            _db.Payments.Add(payment);
+            await _db.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return partner;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
     public async Task UpdateAsync(Partner partner)
     {
         _db.Partners.Update(partner);

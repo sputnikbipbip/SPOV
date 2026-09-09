@@ -8,6 +8,10 @@ public class PaymentDto
     public string Currency { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string Provider { get; set; } = string.Empty;
-    public string? ProviderTransactionId { get; set; }
+    public string? ProofFileName { get; set; }
+    public string? ProofContentType { get; set; }
+    public DateTime? ProofUploadedAt { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public string? ReviewNote { get; set; }
     public DateTime CreatedAt { get; set; }
 }

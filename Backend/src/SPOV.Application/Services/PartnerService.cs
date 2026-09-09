@@ -87,6 +87,8 @@ public class PartnerService : IPartnerService
         if (!string.IsNullOrWhiteSpace(request.BirthDate) && DateOnly.TryParse(request.BirthDate, out var parsed))
             birthDate = parsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
+        var fees = CalculateFees(request.PartnerType);
+
         var partner = new Partner
         {
             UserId = userId!,
@@ -105,17 +107,24 @@ public class PartnerService : IPartnerService
             CompanyName = request.CompanyName,
             CompanyPhone = request.CompanyPhone,
             Observations = request.Observations,
-            InitiationFee = request.InitiationFee,
-            QuotaValue = request.QuotaValue,
-            TotalAmount = request.TotalAmount,
-            PartnerType = request.PartnerType == "Student" ? PartnerType.Student : PartnerType.Professional,
+            InitiationFee = fees.InitiationFee,
+            QuotaValue = fees.QuotaValue,
+            TotalAmount = fees.TotalAmount,
+            PartnerType = string.Equals(request.PartnerType, "Student", StringComparison.OrdinalIgnoreCase) ? PartnerType.Student : PartnerType.Professional,
             MembershipStatus = MembershipStatus.Pending,
             JoinedAt = DateTime.UtcNow
         };
 
-        var created = await _partnerRepository.AddAsync(partner);
+        var payment = new Payment
+        {
+            Amount = partner.TotalAmount,
+            Currency = "EUR",
+            Status = PaymentStatus.Pending,
+            Provider = "BankTransfer"
+        };
+        var created = await _partnerRepository.AddWithPaymentAsync(partner, payment);
         var dto = _mapper.Map<PartnerProfileDto>(created);
-        dto.Payments = [];
+        dto.Payments = _mapper.Map<List<PaymentDto>>(new List<Payment> { payment });
 
         return Result<PartnerProfileDto>.Success(dto);
     }
@@ -142,6 +151,7 @@ public class PartnerService : IPartnerService
         if (!string.IsNullOrWhiteSpace(request.BirthDate) && DateOnly.TryParse(request.BirthDate, out var parsed))
             birthDate = parsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
+        var fees = CalculateFees(request.PartnerType);
         var partner = new Partner
         {
             UserId = userId!,
@@ -160,10 +170,10 @@ public class PartnerService : IPartnerService
             CompanyName = request.CompanyName,
             CompanyPhone = request.CompanyPhone,
             Observations = request.Observations,
-            InitiationFee = request.InitiationFee,
-            QuotaValue = request.QuotaValue,
-            TotalAmount = request.TotalAmount,
-            PartnerType = request.PartnerType == "Student" ? PartnerType.Student : PartnerType.Professional,
+            InitiationFee = fees.InitiationFee,
+            QuotaValue = fees.QuotaValue,
+            TotalAmount = fees.TotalAmount,
+            PartnerType = string.Equals(request.PartnerType, "Student", StringComparison.OrdinalIgnoreCase) ? PartnerType.Student : PartnerType.Professional,
             MembershipStatus = MembershipStatus.Active,
             MembershipTierId = request.MembershipTierId,
             JoinedAt = request.JoinedAt,
@@ -186,6 +196,10 @@ public class PartnerService : IPartnerService
         var partner = await _partnerRepository.GetByIdAsync(id);
         if (partner is null)
             return Result<PartnerDto>.Failure(Error.NotFound($"Partner with id {id} not found."));
+
+        var payments = await _paymentRepository.GetByPartnerIdAsync(id);
+        if (!payments.Any(payment => payment.Status == PaymentStatus.Verified))
+            return Result<PartnerDto>.Failure(Error.Conflict("O pagamento tem de ser validado antes de ativar o sócio."));
 
         partner.MembershipStatus = MembershipStatus.Active;
         await _partnerRepository.UpdateAsync(partner);
@@ -272,6 +286,12 @@ public class PartnerService : IPartnerService
             chars.Add(all[random.Next(all.Length)]);
 
         return string.Concat(chars.OrderBy(_ => random.Next()));
+    }
+
+    private static (decimal InitiationFee, decimal QuotaValue, decimal TotalAmount) CalculateFees(string partnerType)
+    {
+        var quotaValue = string.Equals(partnerType, "Student", StringComparison.OrdinalIgnoreCase) ? 20m : 50m;
+        return (30m, quotaValue, 30m + quotaValue);
     }
 
 }

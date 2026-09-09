@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
-import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } from '../services/partners.service';
+import { PartnersService, PartnerDto, PartnerProfileDto, PaymentDto, CreatePartnerRequest } from '../services/partners.service';
 
 @Component({
   selector: 'app-admin-partners',
@@ -63,9 +63,6 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
                 {{ statusLabel(partner.membershipStatus) }}
               </span>
               <button type="button" class="button button-secondary" style="min-height:36px;padding:0.4rem 1rem;font-size:0.85rem;" (click)="openDetails(partner)">Ver detalhes</button>
-              @if (partner.membershipStatus === 'Pending') {
-                <button type="button" class="button button-primary" style="min-height:36px;padding:0.4rem 1rem;font-size:0.85rem;" (click)="approve(partner)">Aprovar</button>
-              }
             </div>
           </div>
         </div>
@@ -138,7 +135,14 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
                       <div class="payment-row">
                         <span class="payment-date">{{ p.createdAt | date:'dd/MM/yyyy' }}</span>
                         <span class="payment-amount">€{{ p.amount.toFixed(2) }}</span>
-                        <span class="badge" [class.badge-yellow]="p.status === 'Pending'" [class.badge-dark]="p.status === 'Completed'">{{ p.status }}</span>
+                        <span class="badge" [class.badge-yellow]="p.status === 'Pending' || p.status === 'Submitted'" [class.badge-dark]="p.status === 'Verified' || p.status === 'Completed'" [class.badge-outline]="p.status === 'Rejected'">{{ paymentStatusLabel(p.status) }}</span>
+                        @if (p.proofFileName) {
+                          <button type="button" class="button button-secondary" style="min-height:30px;padding:0.25rem 0.6rem;font-size:0.8rem;" (click)="downloadProof(selectedPartner()!.id, p)">Ver comprovativo</button>
+                        }
+                        @if (p.status === 'Submitted') {
+                          <button type="button" class="button button-primary" style="min-height:30px;padding:0.25rem 0.6rem;font-size:0.8rem;" [disabled]="reviewingPaymentId() === p.id" (click)="verifyPayment(p)">Validar</button>
+                          <button type="button" class="button button-danger" style="min-height:30px;padding:0.25rem 0.6rem;font-size:0.8rem;" [disabled]="reviewingPaymentId() === p.id" (click)="rejectPayment(p)">Rejeitar</button>
+                        }
                       </div>
                     }
                   </div>
@@ -149,12 +153,6 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
                 <div class="profile-section"><h3>Observações</h3><p>{{ selectedPartner()!.observations }}</p></div>
               }
 
-              @if (selectedPartner()!.paymentProofUrl) {
-                <div class="profile-section">
-                  <h3>Comprovativo</h3>
-                  <p>Comprovativo enviado: <a [href]="selectedPartner()!.paymentProofUrl" target="_blank">Ver ficheiro</a></p>
-                </div>
-              }
             </div>
           }
         </div>
@@ -238,6 +236,7 @@ export class AdminPartnersComponent implements OnInit {
   protected createdTemporaryPassword = signal('');
   protected createdPartnerName = signal('');
   protected copyMessage = signal('');
+  protected reviewingPaymentId = signal<number | null>(null);
   protected quotaValue = signal(50);
   protected totalAmount = signal(80);
 
@@ -316,6 +315,17 @@ export class AdminPartnersComponent implements OnInit {
     }
   }
 
+  protected paymentStatusLabel(status: string): string {
+    switch (status) {
+      case 'Pending': return 'Pagamento pendente';
+      case 'Submitted': return 'Em validação';
+      case 'Verified':
+      case 'Completed': return 'Validado';
+      case 'Rejected': return 'Rejeitado';
+      default: return status;
+    }
+  }
+
   protected expiryClass(partner: PartnerDto): 'expired' | 'expiring' | '' {
     if (!partner.membershipExpiresAt) return '';
     const expires = new Date(partner.membershipExpiresAt);
@@ -324,15 +334,63 @@ export class AdminPartnersComponent implements OnInit {
     return daysLeft <= 30 ? 'expiring' : '';
   }
 
-  protected async approve(partner: PartnerDto) {
-    this.error.set('');
-    this.success.set('');
+  protected async verifyPayment(payment: PaymentDto) {
+    const partner = this.selectedPartner();
+    if (!partner) return;
+
+    this.reviewingPaymentId.set(payment.id);
+    this.detailError.set('');
     try {
-      await this.partnersService.approve(partner.id);
-      this.success.set(`${partner.fullName} aprovado com sucesso.`);
-      await this.load();
+      await this.partnersService.verifyPayment(partner.id, payment.id);
+      this.success.set('Pagamento validado e sócio ativado.');
+      try {
+        this.selectedPartner.set(await this.partnersService.getById(partner.id));
+        await this.load();
+      } catch {
+        this.detailError.set('Pagamento validado, mas não foi possível atualizar os detalhes.');
+      }
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'Erro ao aprovar sócio.');
+      this.detailError.set(e instanceof Error ? e.message : 'Erro ao validar pagamento.');
+    } finally {
+      this.reviewingPaymentId.set(null);
+    }
+  }
+
+  protected async rejectPayment(payment: PaymentDto) {
+    const partner = this.selectedPartner();
+    if (!partner) return;
+
+    const note = window.prompt('Indique o motivo da rejeição:', 'Comprovativo inválido ou ilegível.');
+    if (note === null) return;
+
+    this.reviewingPaymentId.set(payment.id);
+    this.detailError.set('');
+    try {
+      await this.partnersService.rejectPayment(partner.id, payment.id, note);
+      this.success.set('Pagamento rejeitado.');
+      try {
+        this.selectedPartner.set(await this.partnersService.getById(partner.id));
+      } catch {
+        this.detailError.set('Pagamento rejeitado, mas não foi possível atualizar os detalhes.');
+      }
+    } catch (e) {
+      this.detailError.set(e instanceof Error ? e.message : 'Erro ao rejeitar pagamento.');
+    } finally {
+      this.reviewingPaymentId.set(null);
+    }
+  }
+
+  protected async downloadProof(partnerId: number, payment: PaymentDto) {
+    try {
+      const blob = await this.partnersService.downloadPaymentProof(partnerId, payment.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = payment.proofFileName ?? 'comprovativo';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      this.detailError.set(e instanceof Error ? e.message : 'Erro ao descarregar comprovativo.');
     }
   }
 

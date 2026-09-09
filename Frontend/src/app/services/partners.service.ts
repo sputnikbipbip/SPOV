@@ -33,7 +33,11 @@ export interface PaymentDto {
   currency: string;
   status: string;
   provider: string;
-  providerTransactionId: string | null;
+  proofFileName: string | null;
+  proofContentType: string | null;
+  proofUploadedAt: string | null;
+  reviewedAt: string | null;
+  reviewNote: string | null;
   createdAt: string;
 }
 
@@ -164,10 +168,22 @@ export class PartnersService extends ApiService {
     return this.put('/api/partners/me', data);
   }
 
-  uploadProof(file: File): Promise<{ filePath: string }> {
+  uploadProof(file: File): Promise<PaymentDto> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.post('/api/partners/upload-proof', formData);
+    return this.post('/api/partners/me/payment-proof', formData);
+  }
+
+  downloadPaymentProof(partnerId: number, paymentId: number): Promise<Blob> {
+    return this.getBlob(`/api/partners/${partnerId}/payments/${paymentId}/proof`);
+  }
+
+  verifyPayment(partnerId: number, paymentId: number): Promise<void> {
+    return this.post(`/api/partners/${partnerId}/payments/${paymentId}/verify`, null);
+  }
+
+  rejectPayment(partnerId: number, paymentId: number, note?: string): Promise<void> {
+    return this.post(`/api/partners/${partnerId}/payments/${paymentId}/reject`, { note });
   }
 
   forgotPassword(email: string): Promise<void> {
