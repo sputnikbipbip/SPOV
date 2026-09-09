@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest, EventRegistrationDto } from '../services/events.service';
@@ -10,13 +10,13 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest, EventR
   template: `
     <div class="admin-header">
       <h2>Eventos</h2>
-      <button type="button" class="button button-primary" (click)="toggleNew()">{{ showNewForm ? 'Cancelar' : 'Novo Evento' }}</button>
+      <button type="button" class="button button-primary" (click)="toggleNew()">{{ showNewForm() ? 'Cancelar' : 'Novo Evento' }}</button>
     </div>
 
-    @if (error) { <div class="form-error-banner">{{ error }}</div> }
-    @if (success) { <div class="success-banner"><strong>{{ success }}</strong></div> }
+    @if (error()) { <div class="form-error-banner">{{ error() }}</div> }
+    @if (success()) { <div class="success-banner"><strong>{{ success() }}</strong></div> }
 
-    @if (showNewForm) {
+    @if (showNewForm()) {
       <form class="admin-form" [formGroup]="newForm" (ngSubmit)="create()" novalidate>
         <h3>Novo Evento</h3>
         <div class="field-grid">
@@ -37,18 +37,18 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest, EventR
           </label>
         </div>
         <div class="form-actions">
-          <button type="submit" class="button button-primary" [disabled]="saving">{{ saving ? 'A criar…' : 'Criar Evento' }}</button>
+          <button type="submit" class="button button-primary" [disabled]="saving()">{{ saving() ? 'A criar…' : 'Criar Evento' }}</button>
           <button type="button" class="button button-secondary" (click)="toggleNew()">Cancelar</button>
         </div>
       </form>
     }
 
     <div class="admin-table-wrap">
-      @if (events.length === 0) { <p class="empty-state">Nenhum evento encontrado.</p> }
-      @for (event of events; track event.id) {
+      @if (events().length === 0) { <p class="empty-state">Nenhum evento encontrado.</p> }
+      @for (event of events(); track event.id) {
         <div class="admin-event-row">
-          @if (editingId === event.id && editForm) {
-            <form class="admin-form" [formGroup]="editForm" (ngSubmit)="update(event.id)" novalidate>
+          @if (editingId() === event.id && editForm()) {
+            <form class="admin-form" [formGroup]="editForm()!" (ngSubmit)="update(event.id)" novalidate>
               <h3>Editar: {{ event.title }}</h3>
               <div class="field-grid">
                 <label class="field-full">Título <input formControlName="title" placeholder="Título do evento"></label>
@@ -58,17 +58,17 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest, EventR
                 <label>Local <input formControlName="location" placeholder="Ex: Hotel Coimbra Aeminium"></label>
                 <label class="checkbox-label"><input type="checkbox" formControlName="isMembersOnly"> Apenas para sócios</label>
                 <label class="field-full">Imagem
-                  <input type="file" accept="image/*" (change)="onImageSelected($event, editForm)">
-                  @if (editForm.controls['imageData'].value) {
+                  <input type="file" accept="image/*" (change)="onImageSelected($event, editForm()!)">
+                  @if (editForm()!.controls['imageData'].value) {
                     <div class="event-form-image-preview">
-                      <img [src]="editForm.controls['imageData'].value" alt="Pré-visualização da imagem do evento">
-                      <button type="button" class="button button-secondary" (click)="clearImage(editForm)">Remover</button>
+                      <img [src]="editForm()!.controls['imageData'].value" alt="Pré-visualização da imagem do evento">
+                      <button type="button" class="button button-secondary" (click)="clearImage(editForm()!)">Remover</button>
                     </div>
                   }
                 </label>
               </div>
               <div class="form-actions">
-                <button type="submit" class="button button-primary" [disabled]="saving">{{ saving ? 'A guardar…' : 'Guardar' }}</button>
+                <button type="submit" class="button button-primary" [disabled]="saving()">{{ saving() ? 'A guardar…' : 'Guardar' }}</button>
                 <button type="button" class="button button-secondary" (click)="cancelEdit()">Cancelar</button>
               </div>
             </form>
@@ -93,17 +93,17 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest, EventR
       }
     </div>
 
-    @if (registrationsEvent) {
+    @if (registrationsEvent()) {
       <div class="modal-overlay">
         <div class="modal">
           <button type="button" class="modal-close" (click)="closeRegistrations()" aria-label="Fechar">×</button>
-          <h3>Inscrições — {{ registrationsEvent.title }}</h3>
-          @if (registrationsError) { <div class="form-error-banner">{{ registrationsError }}</div> }
-          @if (registrationsLoading) { <p class="empty-state">A carregar inscrições…</p> }
-          @else if (registrations.length === 0) { <p class="empty-state">Sem inscrições registadas.</p> }
+          <h3>Inscrições — {{ registrationsEvent()!.title }}</h3>
+          @if (registrationsError()) { <div class="form-error-banner">{{ registrationsError() }}</div> }
+          @if (registrationsLoading()) { <p class="empty-state">A carregar inscrições…</p> }
+          @else if (registrations().length === 0) { <p class="empty-state">Sem inscrições registadas.</p> }
           @else {
             <div class="registration-list">
-              @for (r of registrations; track r.id) {
+              @for (r of registrations(); track r.id) {
                 <div class="registration-row">
                   <div>
                     <strong>{{ r.partnerFullName || 'Sócio #' + r.partnerId }}</strong>
@@ -121,17 +121,17 @@ import { EventsService, EventDto, CreateEventRequest, UpdateEventRequest, EventR
 })
 export class AdminEventsComponent implements OnInit {
   private readonly eventsService = inject(EventsService);
-  protected events: EventDto[] = [];
-  protected showNewForm = false;
-  protected editingId: number | null = null;
-  protected editForm: FormGroup | null = null;
-  protected saving = false;
-  protected error = '';
-  protected success = '';
-  protected registrations: EventRegistrationDto[] = [];
-  protected registrationsEvent: EventDto | null = null;
-  protected registrationsLoading = false;
-  protected registrationsError = '';
+  protected events = signal<EventDto[]>([]);
+  protected showNewForm = signal(false);
+  protected editingId = signal<number | null>(null);
+  protected editForm = signal<FormGroup | null>(null);
+  protected saving = signal(false);
+  protected error = signal('');
+  protected success = signal('');
+  protected registrations = signal<EventRegistrationDto[]>([]);
+  protected registrationsEvent = signal<EventDto | null>(null);
+  protected registrationsLoading = signal(false);
+  protected registrationsError = signal('');
 
   protected readonly newForm = new FormGroup({
     title: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -150,19 +150,19 @@ export class AdminEventsComponent implements OnInit {
   private async loadEvents() {
     try {
       const response = await this.eventsService.getAll({ pageSize: 50 });
-      this.events = response.data;
+      this.events.set(response.data);
     } catch {
-      this.error = 'Erro ao carregar eventos.';
+      this.error.set('Erro ao carregar eventos.');
     }
   }
 
   toggleNew() {
-    this.showNewForm = !this.showNewForm;
-    this.editingId = null;
-    this.editForm = null;
-    this.error = '';
-    this.success = '';
-    if (!this.showNewForm) this.newForm.reset();
+    this.showNewForm.set(!this.showNewForm());
+    this.editingId.set(null);
+    this.editForm.set(null);
+    this.error.set('');
+    this.success.set('');
+    if (!this.showNewForm()) this.newForm.reset();
   }
 
   private toDatetimeLocal(iso: string): string {
@@ -172,11 +172,11 @@ export class AdminEventsComponent implements OnInit {
   }
 
   startEdit(event: EventDto) {
-    this.editingId = event.id;
-    this.showNewForm = false;
-    this.error = '';
-    this.success = '';
-    this.editForm = new FormGroup({
+    this.editingId.set(event.id);
+    this.showNewForm.set(false);
+    this.error.set('');
+    this.success.set('');
+    this.editForm.set(new FormGroup({
       title: new FormControl(event.title, { nonNullable: true, validators: Validators.required }),
       description: new FormControl(event.description ?? '', { nonNullable: true }),
       startDate: new FormControl(this.toDatetimeLocal(event.startDate), { nonNullable: true, validators: Validators.required }),
@@ -184,12 +184,12 @@ export class AdminEventsComponent implements OnInit {
       location: new FormControl(event.location ?? '', { nonNullable: true }),
       isMembersOnly: new FormControl(event.isMembersOnly, { nonNullable: true }),
       imageData: new FormControl<string | null>(event.imageData)
-    });
+    }));
   }
 
   cancelEdit() {
-    this.editingId = null;
-    this.editForm = null;
+    this.editingId.set(null);
+    this.editForm.set(null);
   }
 
   private formToRequest(form: FormGroup): CreateEventRequest {
@@ -249,71 +249,72 @@ export class AdminEventsComponent implements OnInit {
       this.newForm.markAllAsTouched();
       return;
     }
-    this.saving = true;
-    this.error = '';
+    this.saving.set(true);
+    this.error.set('');
     try {
       await this.eventsService.create(this.formToRequest(this.newForm));
-      this.success = 'Evento criado com sucesso.';
-      this.showNewForm = false;
+      this.success.set('Evento criado com sucesso.');
+      this.showNewForm.set(false);
       this.newForm.reset();
       await this.loadEvents();
     } catch (e) {
-      this.error = e instanceof Error ? e.message : 'Erro ao criar evento.';
+      this.error.set(e instanceof Error ? e.message : 'Erro ao criar evento.');
     } finally {
-      this.saving = false;
+      this.saving.set(false);
     }
   }
 
   async update(id: number) {
-    if (!this.editForm || this.editForm.invalid) {
-      this.editForm?.markAllAsTouched();
+    const editForm = this.editForm();
+    if (!editForm || editForm.invalid) {
+      editForm?.markAllAsTouched();
       return;
     }
-    this.saving = true;
-    this.error = '';
+    this.saving.set(true);
+    this.error.set('');
     try {
-      await this.eventsService.update(id, this.formToRequest(this.editForm));
-      this.success = 'Evento atualizado com sucesso.';
-      this.editingId = null;
-      this.editForm = null;
+      await this.eventsService.update(id, this.formToRequest(editForm));
+      this.success.set('Evento atualizado com sucesso.');
+      this.editingId.set(null);
+      this.editForm.set(null);
       await this.loadEvents();
     } catch (e) {
-      this.error = e instanceof Error ? e.message : 'Erro ao atualizar evento.';
+      this.error.set(e instanceof Error ? e.message : 'Erro ao atualizar evento.');
     } finally {
-      this.saving = false;
+      this.saving.set(false);
     }
   }
 
   async confirmDelete(event: EventDto) {
     if (!confirm(`Tem a certeza que deseja eliminar o evento "${event.title}"?`)) return;
-    this.error = '';
-    this.success = '';
+    this.error.set('');
+    this.success.set('');
     try {
       await this.eventsService.delete(event.id);
-      this.success = 'Evento eliminado com sucesso.';
+      this.success.set('Evento eliminado com sucesso.');
       await this.loadEvents();
     } catch (e) {
-      this.error = e instanceof Error ? e.message : 'Erro ao eliminar evento.';
+      this.error.set(e instanceof Error ? e.message : 'Erro ao eliminar evento.');
     }
   }
 
   async openRegistrations(event: EventDto) {
-    this.registrationsEvent = event;
-    this.registrations = [];
-    this.registrationsLoading = true;
-    this.registrationsError = '';
+    this.registrationsEvent.set(event);
+    this.registrations.set([]);
+    this.registrationsLoading.set(true);
+    this.registrationsError.set('');
     try {
-      this.registrations = await this.eventsService.getRegistrations(event.id);
+      this.registrations.set(await this.eventsService.getRegistrations(event.id));
     } catch (e) {
-      this.registrationsError = e instanceof Error ? e.message : 'Erro ao carregar inscrições.';
+      this.registrationsError.set(e instanceof Error ? e.message : 'Erro ao carregar inscrições.');
     } finally {
-      this.registrationsLoading = false;
+      this.registrationsLoading.set(false);
     }
   }
 
   closeRegistrations() {
-    this.registrationsEvent = null;
-    this.registrations = [];
-    this.registrationsError = '';
+    this.registrationsEvent.set(null);
+    this.registrations.set([]);
+    this.registrationsError.set('');
   }
 }

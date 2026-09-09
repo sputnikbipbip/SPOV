@@ -1,10 +1,14 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, NgOptimizedImage],
+  host: {
+    '(window:scroll)': 'onScroll()'
+  },
   template: `
     <section class="hero-section">
       <div class="container hero-grid">
@@ -17,8 +21,8 @@ import { RouterLink } from '@angular/router';
             <a routerLink="/about" class="button button-secondary">Conhecer a SPOV</a>
           </div>
         </div>
-        <div class="hero-visual" [style.opacity]="heroImageOpacity">
-          <img class="hero-animal-img" src="assets/images/hero-cat-dog.jpg" alt="Cão e gato">
+        <div class="hero-visual" [style.opacity]="heroImageOpacity()">
+          <img class="hero-animal-img" ngSrc="assets/images/hero-cat-dog.jpg" width="1200" height="706" priority alt="Cão e gato">
         </div>
       </div>
     </section>
@@ -107,16 +111,15 @@ import { RouterLink } from '@angular/router';
   `
 })
 export class HomeComponent {
-  protected heroImageOpacity = 1;
+  protected heroImageOpacity = signal(1);
 
-  @HostListener('window:scroll')
   onScroll() {
     const hero = document.querySelector('.hero-section');
     if (!hero) return;
     const rect = hero.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     const progress = Math.max(0, Math.min(1, (windowHeight - rect.top) / windowHeight));
-    this.heroImageOpacity = Math.max(0, Math.min(1, (progress - 0.15) / 0.55));
+    this.heroImageOpacity.set(Math.max(0, Math.min(1, (progress - 0.15) / 0.55)));
   }
 
   protected readonly sponsors = [

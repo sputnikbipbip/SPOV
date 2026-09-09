@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PartnersService } from '../services/partners.service';
@@ -6,12 +7,12 @@ import { PartnersService } from '../services/partners.service';
 @Component({
   selector: 'app-partner-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, NgOptimizedImage],
   template: `
     <div class="admin-login">
       <div class="login-form">
         <a routerLink="/" class="brand-group" aria-label="Página inicial SPOV">
-          <img class="header-logo" src="assets/images/SPOV_Logo.png" alt="SPOV">
+          <img class="header-logo" ngSrc="assets/images/SPOV_Logo.png" width="443" height="285" alt="SPOV">
         </a>
 
         @if (reset()) {

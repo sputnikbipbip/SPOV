@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } from '../services/partners.service';
@@ -26,13 +26,13 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
     <div class="admin-header">
       <h2>Sócios</h2>
       <div style="display:flex;align-items:center;gap:0.75rem;">
-        <span class="badge badge-dark" style="font-size:0.85rem;">{{ totalRecords }} total</span>
+        <span class="badge badge-dark" style="font-size:0.85rem;">{{ totalRecords() }} total</span>
         <button type="button" class="button button-primary" (click)="openCreate()">Novo Sócio</button>
       </div>
     </div>
 
-    @if (error) { <div class="form-error-banner">{{ error }}</div> }
-    @if (success) { <div class="success-banner"><strong>{{ success }}</strong></div> }
+    @if (error()) { <div class="form-error-banner">{{ error() }}</div> }
+    @if (success()) { <div class="success-banner"><strong>{{ success() }}</strong></div> }
 
     <div class="admin-filters">
       <input type="search" [(ngModel)]="searchTerm" placeholder="Pesquisar nome, email, NIF…" (keydown.enter)="applyFilters()" />
@@ -47,8 +47,8 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
     </div>
 
     <div class="admin-table-wrap">
-      @if (partners.length === 0) { <p class="empty-state">Nenhum sócio encontrado.</p> }
-      @for (partner of partners; track partner.id) {
+      @if (partners().length === 0) { <p class="empty-state">Nenhum sócio encontrado.</p> }
+      @for (partner of partners(); track partner.id) {
         <div class="admin-event-row">
           <div class="event-row-content">
             <div class="event-row-info">
@@ -71,37 +71,37 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
         </div>
       }
 
-      @if (totalPages > 1) {
+      @if (totalPages() > 1) {
         <div class="pagination">
-          <button type="button" class="button button-secondary" style="min-height:36px;padding:0.4rem 1rem;font-size:0.85rem;" [disabled]="pageNumber <= 1" (click)="goToPage(pageNumber - 1)">Anterior</button>
-          <span class="pagination-info">{{ pageNumber }} / {{ totalPages }}</span>
-          <button type="button" class="button button-secondary" style="min-height:36px;padding:0.4rem 1rem;font-size:0.85rem;" [disabled]="pageNumber >= totalPages" (click)="goToPage(pageNumber + 1)">Seguinte</button>
+          <button type="button" class="button button-secondary" style="min-height:36px;padding:0.4rem 1rem;font-size:0.85rem;" [disabled]="pageNumber() <= 1" (click)="goToPage(pageNumber() - 1)">Anterior</button>
+          <span class="pagination-info">{{ pageNumber() }} / {{ totalPages() }}</span>
+          <button type="button" class="button button-secondary" style="min-height:36px;padding:0.4rem 1rem;font-size:0.85rem;" [disabled]="pageNumber() >= totalPages()" (click)="goToPage(pageNumber() + 1)">Seguinte</button>
         </div>
       }
     </div>
 
-    @if (selectedPartner || detailLoading || detailError) {
+    @if (selectedPartner() || detailLoading() || detailError()) {
       <div class="modal-overlay" (click)="closeDetails()">
         <div class="modal" (click)="$event.stopPropagation()">
           <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fechar">×</button>
-          @if (detailLoading) { <p class="empty-state">A carregar detalhes…</p> }
-          @if (detailError) { <div class="form-error-banner">{{ detailError }}</div> }
-          @if (selectedPartner) {
+          @if (detailLoading()) { <p class="empty-state">A carregar detalhes…</p> }
+          @if (detailError()) { <div class="form-error-banner">{{ detailError() }}</div> }
+          @if (selectedPartner()) {
             <div class="profile-card">
               <div class="profile-header">
-                <h2>{{ selectedPartner.fullName }}</h2>
-                <span class="badge" [class.badge-yellow]="selectedPartner.membershipStatus === 'Pending'" [class.badge-dark]="selectedPartner.membershipStatus === 'Active'">{{ statusLabel(selectedPartner.membershipStatus) }}</span>
+                <h2>{{ selectedPartner()!.fullName }}</h2>
+                <span class="badge" [class.badge-yellow]="selectedPartner()!.membershipStatus === 'Pending'" [class.badge-dark]="selectedPartner()!.membershipStatus === 'Active'">{{ statusLabel(selectedPartner()!.membershipStatus) }}</span>
               </div>
 
               <div class="profile-section">
                 <h3>Informação Pessoal</h3>
                 <dl class="profile-dl">
-                  <dt>Email</dt><dd>{{ selectedPartner.email }}</dd>
-                  <dt>Telefone</dt><dd>{{ selectedPartner.phone }}</dd>
-                  @if (selectedPartner.taxId) { <dt>NIF</dt><dd>{{ selectedPartner.taxId }}</dd> }
-                  @if (selectedPartner.birthDate) { <dt>Data de Nascimento</dt><dd>{{ selectedPartner.birthDate | date:'dd/MM/yyyy' }}</dd> }
-                  @if (selectedPartner.address || selectedPartner.city) {
-                    <dt>Morada</dt><dd>{{ selectedPartner.address }}{{ selectedPartner.city ? ', ' + selectedPartner.city : '' }}{{ selectedPartner.zipCode ? ' - ' + selectedPartner.zipCode : '' }}</dd>
+                  <dt>Email</dt><dd>{{ selectedPartner()!.email }}</dd>
+                  <dt>Telefone</dt><dd>{{ selectedPartner()!.phone }}</dd>
+                  @if (selectedPartner()!.taxId) { <dt>NIF</dt><dd>{{ selectedPartner()!.taxId }}</dd> }
+                  @if (selectedPartner()!.birthDate) { <dt>Data de Nascimento</dt><dd>{{ selectedPartner()!.birthDate | date:'dd/MM/yyyy' }}</dd> }
+                  @if (selectedPartner()!.address || selectedPartner()!.city) {
+                    <dt>Morada</dt><dd>{{ selectedPartner()!.address }}{{ selectedPartner()!.city ? ', ' + selectedPartner()!.city : '' }}{{ selectedPartner()!.zipCode ? ' - ' + selectedPartner()!.zipCode : '' }}</dd>
                   }
                 </dl>
               </div>
@@ -109,32 +109,32 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
               <div class="profile-section">
                 <h3>Informação Profissional</h3>
                 <dl class="profile-dl">
-                  <dt>Tipo de Sócio</dt><dd>{{ selectedPartner.partnerType === 'Student' ? 'Estudante' : 'Profissional' }}</dd>
-                  @if (selectedPartner.profession) { <dt>Profissão</dt><dd>{{ selectedPartner.profession }}</dd> }
-                  @if (selectedPartner.companyName) { <dt>Empresa</dt><dd>{{ selectedPartner.companyName }}</dd> }
-                  @if (selectedPartner.companyPhone) { <dt>Telefone da Empresa</dt><dd>{{ selectedPartner.companyPhone }}</dd> }
-                  @if (selectedPartner.professionalCardNumber) { <dt>Cédula Profissional</dt><dd>{{ selectedPartner.professionalCardNumber }}</dd> }
-                  @if (selectedPartner.academicQualifications) { <dt>Habilitações</dt><dd>{{ selectedPartner.academicQualifications }}</dd> }
+                  <dt>Tipo de Sócio</dt><dd>{{ selectedPartner()!.partnerType === 'Student' ? 'Estudante' : 'Profissional' }}</dd>
+                  @if (selectedPartner()!.profession) { <dt>Profissão</dt><dd>{{ selectedPartner()!.profession }}</dd> }
+                  @if (selectedPartner()!.companyName) { <dt>Empresa</dt><dd>{{ selectedPartner()!.companyName }}</dd> }
+                  @if (selectedPartner()!.companyPhone) { <dt>Telefone da Empresa</dt><dd>{{ selectedPartner()!.companyPhone }}</dd> }
+                  @if (selectedPartner()!.professionalCardNumber) { <dt>Cédula Profissional</dt><dd>{{ selectedPartner()!.professionalCardNumber }}</dd> }
+                  @if (selectedPartner()!.academicQualifications) { <dt>Habilitações</dt><dd>{{ selectedPartner()!.academicQualifications }}</dd> }
                 </dl>
               </div>
 
               <div class="profile-section">
                 <h3>Subscrição</h3>
                 <dl class="profile-dl">
-                  <dt>Estado</dt><dd>{{ statusLabel(selectedPartner.membershipStatus) }}</dd>
-                  <dt>Membro desde</dt><dd>{{ selectedPartner.joinedAt | date:'dd/MM/yyyy' }}</dd>
-                  @if (selectedPartner.membershipExpiresAt) {
-                    <dt>Válido até</dt><dd>{{ selectedPartner.membershipExpiresAt | date:'dd/MM/yyyy' }}</dd>
+                  <dt>Estado</dt><dd>{{ statusLabel(selectedPartner()!.membershipStatus) }}</dd>
+                  <dt>Membro desde</dt><dd>{{ selectedPartner()!.joinedAt | date:'dd/MM/yyyy' }}</dd>
+                  @if (selectedPartner()!.membershipExpiresAt) {
+                    <dt>Válido até</dt><dd>{{ selectedPartner()!.membershipExpiresAt | date:'dd/MM/yyyy' }}</dd>
                   }
-                  @if (selectedPartner.membershipTierName) {
-                    <dt>Plano</dt><dd>{{ selectedPartner.membershipTierName }}</dd>
+                  @if (selectedPartner()!.membershipTierName) {
+                    <dt>Plano</dt><dd>{{ selectedPartner()!.membershipTierName }}</dd>
                   }
                 </dl>
 
-                @if (selectedPartner.payments.length > 0) {
+                @if (selectedPartner()!.payments.length > 0) {
                   <h4>Histórico de Pagamentos</h4>
                   <div class="payment-list">
-                    @for (p of selectedPartner.payments; track p.id) {
+                    @for (p of selectedPartner()!.payments; track p.id) {
                       <div class="payment-row">
                         <span class="payment-date">{{ p.createdAt | date:'dd/MM/yyyy' }}</span>
                         <span class="payment-amount">€{{ p.amount.toFixed(2) }}</span>
@@ -145,14 +145,14 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
                 }
               </div>
 
-              @if (selectedPartner.observations) {
-                <div class="profile-section"><h3>Observações</h3><p>{{ selectedPartner.observations }}</p></div>
+              @if (selectedPartner()!.observations) {
+                <div class="profile-section"><h3>Observações</h3><p>{{ selectedPartner()!.observations }}</p></div>
               }
 
-              @if (selectedPartner.paymentProofUrl) {
+              @if (selectedPartner()!.paymentProofUrl) {
                 <div class="profile-section">
                   <h3>Comprovativo</h3>
-                  <p>Comprovativo enviado: <a [href]="selectedPartner.paymentProofUrl" target="_blank">Ver ficheiro</a></p>
+                  <p>Comprovativo enviado: <a [href]="selectedPartner()!.paymentProofUrl" target="_blank">Ver ficheiro</a></p>
                 </div>
               }
             </div>
@@ -161,17 +161,17 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
       </div>
     }
 
-    @if (showCreate) {
+    @if (showCreate()) {
       <div class="modal-overlay">
         <div class="modal">
           <button type="button" class="modal-close" (click)="closeCreate()" aria-label="Fechar">×</button>
 
-          @if (createdTemporaryPassword) {
+          @if (createdTemporaryPassword()) {
             <h3>Sócio criado com sucesso</h3>
-            <p>Palavra-passe temporária para <strong>{{ createdPartnerName }}</strong>:</p>
+            <p>Palavra-passe temporária para <strong>{{ createdPartnerName() }}</strong>:</p>
             <div class="temp-password-box">
-              <code>{{ createdTemporaryPassword }}</code>
-              <button type="button" class="button button-secondary" (click)="copyPassword()">{{ copyMessage || 'Copiar' }}</button>
+              <code>{{ createdTemporaryPassword() }}</code>
+              <button type="button" class="button button-secondary" (click)="copyPassword()">{{ copyMessage() || 'Copiar' }}</button>
             </div>
             <p class="form-privacy-note">Entregue esta palavra-passe ao sócio. Pode ser alterada após o primeiro acesso à área reservada.</p>
             <div class="form-actions">
@@ -179,7 +179,7 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
             </div>
           } @else {
             <h3>Novo Sócio</h3>
-            @if (createError) { <div class="form-error-banner">{{ createError }}</div> }
+            @if (createError()) { <div class="form-error-banner">{{ createError() }}</div> }
             <form class="admin-form" [formGroup]="newPartner" (ngSubmit)="createPartner()" novalidate>
               <div class="field-grid">
                 <label class="field-full">Nome Completo* <input formControlName="fullName" placeholder="Nome completo"></label>
@@ -206,9 +206,9 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
                 <label>Cidade <input formControlName="city" placeholder="Cidade"></label>
                 <label class="field-full">Observações <textarea formControlName="observations" rows="2" placeholder="Informação adicional"></textarea></label>
               </div>
-              <p class="form-privacy-note">Jóia €30,00 · Quota €{{ quotaValue.toFixed(2) }} · Total €{{ totalAmount.toFixed(2) }}</p>
+              <p class="form-privacy-note">Jóia €30,00 · Quota €{{ quotaValue().toFixed(2) }} · Total €{{ totalAmount().toFixed(2) }}</p>
               <div class="form-actions">
-                <button type="submit" class="button button-primary" [disabled]="creating">{{ creating ? 'A criar…' : 'Criar Sócio' }}</button>
+                <button type="submit" class="button button-primary" [disabled]="creating()">{{ creating() ? 'A criar…' : 'Criar Sócio' }}</button>
                 <button type="button" class="button button-secondary" (click)="closeCreate()">Cancelar</button>
               </div>
             </form>
@@ -220,26 +220,26 @@ import { PartnersService, PartnerDto, PartnerProfileDto, CreatePartnerRequest } 
 })
 export class AdminPartnersComponent implements OnInit {
   private readonly partnersService = inject(PartnersService);
-  protected partners: PartnerDto[] = [];
-  protected error = '';
-  protected success = '';
-  protected pageNumber = 1;
-  protected pageSize = 9;
-  protected totalPages = 1;
-  protected totalRecords = 0;
+  protected partners = signal<PartnerDto[]>([]);
+  protected error = signal('');
+  protected success = signal('');
+  protected pageNumber = signal(1);
+  protected readonly pageSize = 9;
+  protected totalPages = signal(1);
+  protected totalRecords = signal(0);
   protected searchTerm = '';
   protected statusFilter = '';
-  protected selectedPartner: PartnerProfileDto | null = null;
-  protected detailLoading = false;
-  protected detailError = '';
-  protected showCreate = false;
-  protected creating = false;
-  protected createError = '';
-  protected createdTemporaryPassword = '';
-  protected createdPartnerName = '';
-  protected copyMessage = '';
-  protected quotaValue = 50;
-  protected totalAmount = 80;
+  protected selectedPartner = signal<PartnerProfileDto | null>(null);
+  protected detailLoading = signal(false);
+  protected detailError = signal('');
+  protected showCreate = signal(false);
+  protected creating = signal(false);
+  protected createError = signal('');
+  protected createdTemporaryPassword = signal('');
+  protected createdPartnerName = signal('');
+  protected copyMessage = signal('');
+  protected quotaValue = signal(50);
+  protected totalAmount = signal(80);
 
   protected readonly newPartner = new FormGroup({
     fullName: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -263,47 +263,47 @@ export class AdminPartnersComponent implements OnInit {
     try {
       const search = this.searchTerm.trim();
       const response = await this.partnersService.getAll({
-        pageNumber: this.pageNumber,
+        pageNumber: this.pageNumber(),
         pageSize: this.pageSize,
         search: search || undefined,
         membershipStatus: this.statusFilter || undefined,
       });
-      this.partners = response.data;
-      this.totalPages = response.totalPages;
-      this.totalRecords = response.totalRecords;
-      this.pageNumber = response.pageNumber;
+      this.partners.set(response.data);
+      this.totalPages.set(response.totalPages);
+      this.totalRecords.set(response.totalRecords);
+      this.pageNumber.set(response.pageNumber);
     } catch {
-      this.error = 'Erro ao carregar sócios.';
+      this.error.set('Erro ao carregar sócios.');
     }
   }
 
   protected async applyFilters() {
-    this.pageNumber = 1;
-    this.error = '';
+    this.pageNumber.set(1);
+    this.error.set('');
     await this.load();
   }
 
   protected async goToPage(page: number) {
-    this.pageNumber = page;
+    this.pageNumber.set(page);
     await this.load();
   }
 
   protected async openDetails(partner: PartnerDto) {
-    this.detailError = '';
-    this.detailLoading = true;
-    this.selectedPartner = null;
+    this.detailError.set('');
+    this.detailLoading.set(true);
+    this.selectedPartner.set(null);
     try {
-      this.selectedPartner = await this.partnersService.getById(partner.id);
+      this.selectedPartner.set(await this.partnersService.getById(partner.id));
     } catch (e) {
-      this.detailError = e instanceof Error ? e.message : 'Erro ao carregar detalhes do sócio.';
+      this.detailError.set(e instanceof Error ? e.message : 'Erro ao carregar detalhes do sócio.');
     } finally {
-      this.detailLoading = false;
+      this.detailLoading.set(false);
     }
   }
 
   protected closeDetails() {
-    this.selectedPartner = null;
-    this.detailError = '';
+    this.selectedPartner.set(null);
+    this.detailError.set('');
   }
 
   protected statusLabel(status: string): string {
@@ -325,40 +325,40 @@ export class AdminPartnersComponent implements OnInit {
   }
 
   protected async approve(partner: PartnerDto) {
-    this.error = '';
-    this.success = '';
+    this.error.set('');
+    this.success.set('');
     try {
       await this.partnersService.approve(partner.id);
-      this.success = `${partner.fullName} aprovado com sucesso.`;
+      this.success.set(`${partner.fullName} aprovado com sucesso.`);
       await this.load();
     } catch (e) {
-      this.error = e instanceof Error ? e.message : 'Erro ao aprovar sócio.';
+      this.error.set(e instanceof Error ? e.message : 'Erro ao aprovar sócio.');
     }
   }
 
   protected openCreate() {
-    this.showCreate = true;
-    this.createError = '';
-    this.createdTemporaryPassword = '';
-    this.createdPartnerName = '';
-    this.copyMessage = '';
+    this.showCreate.set(true);
+    this.createError.set('');
+    this.createdTemporaryPassword.set('');
+    this.createdPartnerName.set('');
+    this.copyMessage.set('');
     this.newPartner.reset();
     this.newPartner.patchValue({ partnerType: 'Professional' });
     this.updateFees();
   }
 
   protected closeCreate() {
-    this.showCreate = false;
-    this.createError = '';
-    this.createdTemporaryPassword = '';
-    this.createdPartnerName = '';
-    this.copyMessage = '';
+    this.showCreate.set(false);
+    this.createError.set('');
+    this.createdTemporaryPassword.set('');
+    this.createdPartnerName.set('');
+    this.copyMessage.set('');
   }
 
   protected updateFees() {
     const isStudent = this.newPartner.controls.partnerType.value === 'Student';
-    this.quotaValue = isStudent ? 20 : 50;
-    this.totalAmount = 30 + this.quotaValue;
+    this.quotaValue.set(isStudent ? 20 : 50);
+    this.totalAmount.set(30 + this.quotaValue());
   }
 
   protected buildCreateRequest(): CreatePartnerRequest {
@@ -376,8 +376,8 @@ export class AdminPartnersComponent implements OnInit {
       joinedAt: new Date(raw.joinedAt).toISOString(),
       membershipExpiresAt: raw.membershipExpiresAt ? new Date(raw.membershipExpiresAt).toISOString() : undefined,
       initiationFee: 30,
-      quotaValue: this.quotaValue,
-      totalAmount: this.totalAmount
+      quotaValue: this.quotaValue(),
+      totalAmount: this.totalAmount()
     };
   }
 
@@ -386,26 +386,26 @@ export class AdminPartnersComponent implements OnInit {
       this.newPartner.markAllAsTouched();
       return;
     }
-    this.creating = true;
-    this.createError = '';
+    this.creating.set(true);
+    this.createError.set('');
     try {
       const response = await this.partnersService.createPartner(this.buildCreateRequest());
-      this.createdTemporaryPassword = response.temporaryPassword;
-      this.createdPartnerName = response.partner.fullName;
+      this.createdTemporaryPassword.set(response.temporaryPassword);
+      this.createdPartnerName.set(response.partner.fullName);
       await this.load();
     } catch (e) {
-      this.createError = e instanceof Error ? e.message : 'Erro ao criar sócio.';
+      this.createError.set(e instanceof Error ? e.message : 'Erro ao criar sócio.');
     } finally {
-      this.creating = false;
+      this.creating.set(false);
     }
   }
 
   protected async copyPassword() {
     try {
-      await navigator.clipboard.writeText(this.createdTemporaryPassword);
-      this.copyMessage = 'Copiado!';
+      await navigator.clipboard.writeText(this.createdTemporaryPassword());
+      this.copyMessage.set('Copiado!');
     } catch {
-      this.copyMessage = '';
+      this.copyMessage.set('');
     }
   }
 }

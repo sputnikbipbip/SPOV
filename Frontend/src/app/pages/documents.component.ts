@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PageIntroComponent } from '../shared.components';
@@ -12,10 +12,10 @@ import { DocumentsService, DocumentDto } from '../services/documents.service';
     <app-page-intro eyebrow="Documentos" title="Documentos partilhados" text="Aceda aos documentos disponibilizados pela SPOV." />
     <section class="section">
       <div class="container">
-        @if (loading) { <p class="empty-state">A carregar documentos…</p> }
-        @if (error) { <div class="form-error-banner">{{ error }}</div> }
-        @if (documents.length === 0 && !loading) { <p class="empty-state">Nenhum documento disponível.</p> }
-        @for (doc of documents; track doc.id) {
+        @if (loading()) { <p class="empty-state">A carregar documentos…</p> }
+        @if (error()) { <div class="form-error-banner">{{ error() }}</div> }
+        @if (documents().length === 0 && !loading()) { <p class="empty-state">Nenhum documento disponível.</p> }
+        @for (doc of documents(); track doc.id) {
           <div class="admin-event-row">
             <div class="event-row-content">
               <div class="event-row-info">
@@ -38,19 +38,19 @@ import { DocumentsService, DocumentDto } from '../services/documents.service';
 })
 export class DocumentsComponent implements OnInit {
   private readonly documentsService = inject(DocumentsService);
-  protected documents: DocumentDto[] = [];
-  protected loading = true;
-  protected error = '';
+  protected documents = signal<DocumentDto[]>([]);
+  protected loading = signal(true);
+  protected error = signal('');
 
   async ngOnInit() {
     try {
       const response = await this.documentsService.getAll({ pageSize: 50 });
-      this.documents = response.data;
+      this.documents.set(response.data);
     } catch (e) {
-      this.documents = [];
-      this.error = 'Erro ao carregar documentos.';
+      this.documents.set([]);
+      this.error.set('Erro ao carregar documentos.');
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 }

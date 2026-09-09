@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -16,30 +16,30 @@ import { EventsService, PartnerRegistrationDto } from '../services/events.servic
     <app-page-intro eyebrow="Sócios" title="O meu perfil" text="Consulte os seus dados de sócio e o estado da sua subscrição." />
     <section class="section">
       <div class="container">
-        @if (loading) { <p class="empty-state">A carregar perfil…</p> }
-        @if (error) {
+        @if (loading()) { <p class="empty-state">A carregar perfil…</p> }
+        @if (error()) {
           <div class="form-error-banner">
-            {{ error }}
+            {{ error() }}
             <a routerLink="/partners/login" class="button button-secondary" style="margin-top:0.5rem;">Iniciar sessão</a>
           </div>
         }
-        @if (profile && !editing) {
+        @if (profile() && !editing()) {
           <div class="profile-card">
             <div class="profile-header">
-              <h2>{{ profile.fullName }}</h2>
-              <span class="badge" [class.badge-yellow]="profile.membershipStatus === 'Pending'" [class.badge-dark]="profile.membershipStatus === 'Active'">{{ statusLabel }}</span>
+              <h2>{{ profile()!.fullName }}</h2>
+              <span class="badge" [class.badge-yellow]="profile()!.membershipStatus === 'Pending'" [class.badge-dark]="profile()!.membershipStatus === 'Active'">{{ statusLabel() }}</span>
             </div>
 
             <div class="profile-section">
               <h3>Informação Pessoal</h3>
               <dl class="profile-dl">
                 <dt>Email</dt>
-                <dd>{{ profile.email }}</dd>
+                <dd>{{ profile()!.email }}</dd>
                 <dt>Telefone</dt>
-                <dd>{{ profile.phone }}</dd>
-                @if (profile.taxId) { <dt>NIF</dt><dd>{{ profile.taxId }}</dd> }
-                @if (profile.birthDate) { <dt>Data de Nascimento</dt><dd>{{ profile.birthDate | date:'dd/MM/yyyy' }}</dd> }
-                @if (profile.address) { <dt>Morada</dt><dd>{{ profile.address }}{{ profile.city ? ', ' + profile.city : '' }}{{ profile.zipCode ? ' - ' + profile.zipCode : '' }}</dd> }
+                <dd>{{ profile()!.phone }}</dd>
+                @if (profile()!.taxId) { <dt>NIF</dt><dd>{{ profile()!.taxId }}</dd> }
+                @if (profile()!.birthDate) { <dt>Data de Nascimento</dt><dd>{{ profile()!.birthDate | date:'dd/MM/yyyy' }}</dd> }
+                @if (profile()!.address) { <dt>Morada</dt><dd>{{ profile()!.address }}{{ profile()!.city ? ', ' + profile()!.city : '' }}{{ profile()!.zipCode ? ' - ' + profile()!.zipCode : '' }}</dd> }
               </dl>
             </div>
 
@@ -47,11 +47,11 @@ import { EventsService, PartnerRegistrationDto } from '../services/events.servic
               <h3>Informação Profissional</h3>
               <dl class="profile-dl">
                 <dt>Tipo de Sócio</dt>
-                <dd>{{ profile.partnerType === 'Student' ? 'Estudante' : 'Profissional' }}</dd>
-                @if (profile.profession) { <dt>Profissão</dt><dd>{{ profile.profession }}</dd> }
-                @if (profile.companyName) { <dt>Empresa</dt><dd>{{ profile.companyName }}</dd> }
-                @if (profile.professionalCardNumber) { <dt>Cédula Profissional</dt><dd>{{ profile.professionalCardNumber }}</dd> }
-                @if (profile.academicQualifications) { <dt>Habilitações</dt><dd>{{ profile.academicQualifications }}</dd> }
+                <dd>{{ profile()!.partnerType === 'Student' ? 'Estudante' : 'Profissional' }}</dd>
+                @if (profile()!.profession) { <dt>Profissão</dt><dd>{{ profile()!.profession }}</dd> }
+                @if (profile()!.companyName) { <dt>Empresa</dt><dd>{{ profile()!.companyName }}</dd> }
+                @if (profile()!.professionalCardNumber) { <dt>Cédula Profissional</dt><dd>{{ profile()!.professionalCardNumber }}</dd> }
+                @if (profile()!.academicQualifications) { <dt>Habilitações</dt><dd>{{ profile()!.academicQualifications }}</dd> }
               </dl>
             </div>
 
@@ -59,23 +59,23 @@ import { EventsService, PartnerRegistrationDto } from '../services/events.servic
               <h3>Subscrição</h3>
               <dl class="profile-dl">
                 <dt>Estado</dt>
-                <dd>{{ statusLabel }}</dd>
+                <dd>{{ statusLabel() }}</dd>
                 <dt>Membro desde</dt>
-                <dd>{{ profile.joinedAt | date:'dd/MM/yyyy' }}</dd>
-                @if (profile.membershipExpiresAt) {
+                <dd>{{ profile()!.joinedAt | date:'dd/MM/yyyy' }}</dd>
+                @if (profile()!.membershipExpiresAt) {
                   <dt>Válido até</dt>
-                  <dd>{{ profile.membershipExpiresAt | date:'dd/MM/yyyy' }}</dd>
+                  <dd>{{ profile()!.membershipExpiresAt | date:'dd/MM/yyyy' }}</dd>
                 }
-                @if (profile.membershipTierName) {
+                @if (profile()!.membershipTierName) {
                   <dt>Plano</dt>
-                  <dd>{{ profile.membershipTierName }}</dd>
+                  <dd>{{ profile()!.membershipTierName }}</dd>
                 }
               </dl>
 
-              @if (profile.payments.length > 0) {
+              @if (profile()!.payments.length > 0) {
                 <h4>Histórico de Pagamentos</h4>
                 <div class="payment-list">
-                  @for (p of profile.payments; track p.id) {
+                  @for (p of profile()!.payments; track p.id) {
                     <div class="payment-row">
                       <span class="payment-date">{{ p.createdAt | date:'dd/MM/yyyy' }}</span>
                       <span class="payment-amount">€{{ p.amount.toFixed(2) }}</span>
@@ -86,27 +86,27 @@ import { EventsService, PartnerRegistrationDto } from '../services/events.servic
               }
             </div>
 
-            @if (profile.paymentProofUrl) {
+            @if (profile()!.paymentProofUrl) {
               <div class="profile-section">
                 <h3>Comprovativo</h3>
-                <p>Comprovativo enviado: <a [href]="profile.paymentProofUrl" target="_blank">Ver ficheiro</a></p>
+                <p>Comprovativo enviado: <a [href]="profile()!.paymentProofUrl" target="_blank">Ver ficheiro</a></p>
               </div>
             }
 
-            @if (registrations.length > 0) {
+            @if (registrations().length > 0) {
               <div class="profile-section">
                 <h3>Inscrições em Eventos</h3>
                 <div class="payment-list">
-                  @for (r of registrations; track r.id) {
+                  @for (r of registrations(); track r.id) {
                     <div class="payment-row">
                       <span class="payment-date">{{ r.registeredAt | date:'dd/MM/yyyy' }}</span>
                       <span class="payment-amount">{{ r.eventTitle }}</span>
                       <a [routerLink]="'/events/' + r.eventId" class="badge badge-dark" style="text-decoration:none;">Ver evento</a>
-                      <button type="button" class="button button-danger" style="font-size:0.8rem;padding:0.25rem 0.5rem;" [disabled]="cancellingId === r.eventId" (click)="cancelRegistration(r.eventId)">{{ cancellingId === r.eventId ? 'A cancelar…' : 'Cancelar' }}</button>
+                      <button type="button" class="button button-danger" style="font-size:0.8rem;padding:0.25rem 0.5rem;" [disabled]="cancellingId() === r.eventId" (click)="cancelRegistration(r.eventId)">{{ cancellingId() === r.eventId ? 'A cancelar…' : 'Cancelar' }}</button>
                     </div>
                   }
                 </div>
-                @if (cancelError) { <div class="form-error-banner" style="margin-top:0.5rem;">{{ cancelError }}</div> }
+                @if (cancelError()) { <div class="form-error-banner" style="margin-top:0.5rem;">{{ cancelError() }}</div> }
               </div>
             }
           </div>
@@ -117,11 +117,11 @@ import { EventsService, PartnerRegistrationDto } from '../services/events.servic
             <button type="button" class="button button-danger" (click)="logout()">Terminar Sessão</button>
           </div>
         }
-        @if (profile && editing) {
+        @if (profile() && editing()) {
           <div class="profile-card">
             <h2>Editar Perfil</h2>
-            @if (saveError) { <div class="form-error-banner">{{ saveError }}</div> }
-            @if (saveSuccess) { <div class="success-banner"><strong>Perfil atualizado com sucesso.</strong></div> }
+            @if (saveError()) { <div class="form-error-banner">{{ saveError() }}</div> }
+            @if (saveSuccess()) { <div class="success-banner"><strong>Perfil atualizado com sucesso.</strong></div> }
             <form [formGroup]="editForm" (ngSubmit)="saveProfile()" novalidate>
               <div class="field-grid">
                 <label class="field-full">Nome completo <input formControlName="fullName" placeholder="Nome completo"></label>
@@ -140,7 +140,7 @@ import { EventsService, PartnerRegistrationDto } from '../services/events.servic
                 <label class="field-full">Observações <textarea formControlName="observations" rows="3" placeholder="Informação adicional"></textarea></label>
               </div>
               <div class="form-actions">
-                <button type="submit" class="button button-primary" [disabled]="saving">{{ saving ? 'A guardar…' : 'Guardar Alterações' }}</button>
+                <button type="submit" class="button button-primary" [disabled]="saving()">{{ saving() ? 'A guardar…' : 'Guardar Alterações' }}</button>
                 <button type="button" class="button button-secondary" (click)="toggleEdit()">Cancelar</button>
               </div>
             </form>
@@ -156,16 +156,16 @@ export class PartnerProfileComponent {
   private readonly eventsService = inject(EventsService);
   private readonly router = inject(Router);
 
-  protected profile: PartnerProfileDto | null = null;
-  protected registrations: PartnerRegistrationDto[] = [];
-  protected loading = true;
-  protected error = '';
-  protected editing = false;
-  protected saving = false;
-  protected saveError = '';
-  protected saveSuccess = false;
-  protected cancellingId: number | null = null;
-  protected cancelError = '';
+  protected profile = signal<PartnerProfileDto | null>(null);
+  protected registrations = signal<PartnerRegistrationDto[]>([]);
+  protected loading = signal(true);
+  protected error = signal('');
+  protected editing = signal(false);
+  protected saving = signal(false);
+  protected saveError = signal('');
+  protected saveSuccess = signal(false);
+  protected cancellingId = signal<number | null>(null);
+  protected cancelError = signal('');
   protected readonly editForm = new FormGroup({
     fullName: new FormControl('', { nonNullable: true, validators: Validators.required }),
     phone: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -182,48 +182,59 @@ export class PartnerProfileComponent {
     academicQualifications: new FormControl(''),
     observations: new FormControl(''),
   });
+  protected readonly statusLabel = computed(() => {
+    const p = this.profile();
+    if (!p) return '';
+    switch (p.membershipStatus) {
+      case 'Active': return 'Ativo';
+      case 'Pending': return 'Pendente';
+      case 'Expired': return 'Expirado';
+      case 'Suspended': return 'Suspenso';
+      default: return p.membershipStatus;
+    }
+  });
 
   async ngOnInit() {
     try {
-      this.profile = await this.partnersService.getMyProfile();
-      this.registrations = await this.eventsService.getMyRegistrations();
+      this.profile.set(await this.partnersService.getMyProfile());
+      this.registrations.set(await this.eventsService.getMyRegistrations());
     } catch (e) {
-      this.error = 'Não foi possível carregar o perfil. ';
+      this.error.set('Não foi possível carregar o perfil. ');
       if (e instanceof Error) {
         if (e.message.includes('401') || e.message.includes('Unauthorized')) {
-          this.error += 'Sessão expirada. Faça login novamente.';
+          this.error.set(this.error() + 'Sessão expirada. Faça login novamente.');
           this.authService.logout();
         } else {
-          this.error += e.message;
+          this.error.set(this.error() + e.message);
         }
       }
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 
   protected toggleEdit() {
-    this.editing = !this.editing;
-    this.saveError = '';
-    this.saveSuccess = false;
-    if (this.editing && this.profile) {
-      const p = this.profile;
-      const birthDate = p.birthDate ? new Date(p.birthDate).toISOString().split('T')[0] : '';
+    this.editing.set(!this.editing());
+    this.saveError.set('');
+    this.saveSuccess.set(false);
+    const profile = this.profile();
+    if (this.editing() && profile) {
+      const birthDate = profile.birthDate ? new Date(profile.birthDate).toISOString().split('T')[0] : '';
       this.editForm.setValue({
-        fullName: p.fullName,
-        phone: p.phone,
-        taxId: p.taxId ?? '',
+        fullName: profile.fullName,
+        phone: profile.phone,
+        taxId: profile.taxId ?? '',
         birthDate,
-        address: p.address ?? '',
-        city: p.city ?? '',
-        zipCode: p.zipCode ?? '',
-        country: p.country ?? '',
-        profession: p.profession ?? '',
-        companyName: p.companyName ?? '',
-        companyPhone: p.companyPhone ?? '',
-        professionalCardNumber: p.professionalCardNumber ?? '',
-        academicQualifications: p.academicQualifications ?? '',
-        observations: p.observations ?? '',
+        address: profile.address ?? '',
+        city: profile.city ?? '',
+        zipCode: profile.zipCode ?? '',
+        country: profile.country ?? '',
+        profession: profile.profession ?? '',
+        companyName: profile.companyName ?? '',
+        companyPhone: profile.companyPhone ?? '',
+        professionalCardNumber: profile.professionalCardNumber ?? '',
+        academicQualifications: profile.academicQualifications ?? '',
+        observations: profile.observations ?? '',
       });
     }
   }
@@ -233,9 +244,9 @@ export class PartnerProfileComponent {
       this.editForm.markAllAsTouched();
       return;
     }
-    this.saving = true;
-    this.saveError = '';
-    this.saveSuccess = false;
+    this.saving.set(true);
+    this.saveError.set('');
+    this.saveSuccess.set(false);
     try {
       const raw = this.editForm.getRawValue();
       const nullable = (v: string | null) => v || undefined;
@@ -255,42 +266,31 @@ export class PartnerProfileComponent {
         academicQualifications: nullable(raw.academicQualifications),
         observations: nullable(raw.observations),
       };
-      this.profile = await this.partnersService.updateProfile(request);
-      this.saveSuccess = true;
-      setTimeout(() => this.editing = false, 1500);
+      this.profile.set(await this.partnersService.updateProfile(request));
+      this.saveSuccess.set(true);
+      setTimeout(() => this.editing.set(false), 1500);
     } catch (e) {
-      this.saveError = e instanceof Error ? e.message : 'Erro ao guardar perfil.';
+      this.saveError.set(e instanceof Error ? e.message : 'Erro ao guardar perfil.');
     } finally {
-      this.saving = false;
+      this.saving.set(false);
     }
   }
 
   protected async cancelRegistration(eventId: number) {
-    this.cancellingId = eventId;
-    this.cancelError = '';
+    this.cancellingId.set(eventId);
+    this.cancelError.set('');
     try {
       await this.eventsService.cancelRegistration(eventId);
-      this.registrations = this.registrations.filter(r => r.eventId !== eventId);
+      this.registrations.set(this.registrations().filter(r => r.eventId !== eventId));
     } catch (e) {
-      this.cancelError = e instanceof Error ? e.message : 'Erro ao cancelar inscrição.';
+      this.cancelError.set(e instanceof Error ? e.message : 'Erro ao cancelar inscrição.');
     } finally {
-      this.cancellingId = null;
+      this.cancellingId.set(null);
     }
   }
 
   protected logout() {
     this.authService.logout();
     this.router.navigate(['/partners/login']);
-  }
-
-  protected get statusLabel(): string {
-    if (!this.profile) return '';
-    switch (this.profile.membershipStatus) {
-      case 'Active': return 'Ativo';
-      case 'Pending': return 'Pendente';
-      case 'Expired': return 'Expirado';
-      case 'Suspended': return 'Suspenso';
-      default: return this.profile.membershipStatus;
-    }
   }
 }

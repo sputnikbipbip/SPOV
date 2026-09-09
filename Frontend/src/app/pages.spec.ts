@@ -610,7 +610,7 @@ describe('AdminEventsComponent', () => {
     await microtaskTick();
     fixture.detectChanges();
     const comp = fixture.componentInstance as any;
-    comp.showNewForm = true;
+    comp.showNewForm.set(true);
     fixture.detectChanges();
     comp.newForm.patchValue({ title: 'New Event', startDate: '2026-01-01T09:00', endDate: '2026-01-01T18:00', imageData: 'data:image/png;base64,abc' });
     fixture.nativeElement.querySelector('.admin-form button[type="submit"]').click();
@@ -894,7 +894,7 @@ describe('AdminPartnersComponent', () => {
     await microtaskTick();
     fixture.detectChanges();
     const comp = fixture.componentInstance as any;
-    comp.showCreate = true;
+    comp.showCreate.set(true);
     fixture.detectChanges();
     comp.newPartner.patchValue({
       fullName: 'Miguel Almeida',
@@ -930,7 +930,7 @@ describe('AdminPartnersComponent', () => {
     await microtaskTick();
     fixture.detectChanges();
     const comp = fixture.componentInstance as any;
-    comp.showCreate = true;
+    comp.showCreate.set(true);
     fixture.detectChanges();
     comp.newPartner.patchValue({
       fullName: 'Miguel Almeida',

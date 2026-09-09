@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FormFieldComponent, FormNotesComponent } from '../form.components';
@@ -11,14 +11,14 @@ import { PartnersService } from '../services/partners.service';
   imports: [ReactiveFormsModule, RouterLink, PageIntroComponent, FormFieldComponent, FormNotesComponent],
   template: `
     <app-page-intro class="page-intro--spaced" eyebrow="Sócios" title="Aderir à SPOV" text="Será com prazer que o receberemos como sócio da SPOV. Preencha o formulário e proceda ao pagamento da jóia e respetiva quota.">
-      @if (error) { <div class="form-error-banner">{{ error }}</div> }
-      @if (success) {
+      @if (error()) { <div class="form-error-banner">{{ error() }}</div> }
+      @if (success()) {
         <div class="success-banner">
           <strong>Registo submetido com sucesso!</strong>
           <p>Bem-vindo à SPOV. Pode agora <a routerLink="/partners/profile">consultar o seu perfil</a> ou <a routerLink="/">voltar ao início</a>.</p>
         </div>
       }
-      @if (!success) {
+      @if (!success()) {
         <form class="contact-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
           <app-form-notes />
 
@@ -90,11 +90,11 @@ import { PartnersService } from '../services/partners.service';
               </div>
               <div class="pricing-row">
                 <span>Quota {{ form.controls.partnerType.value === 'Student' ? 'Estudante' : 'Profissional' }}</span>
-                <span class="pricing-value">€{{ quotaValue.toFixed(2) }}</span>
+                <span class="pricing-value">€{{ quotaValue().toFixed(2) }}</span>
               </div>
               <div class="pricing-row pricing-total">
                 <span>Total</span>
-                <span class="pricing-value">€{{ totalAmount.toFixed(2) }}</span>
+                <span class="pricing-value">€{{ totalAmount().toFixed(2) }}</span>
               </div>
             </div>
             <p class="form-privacy-note">Transferência bancária para o IBAN <strong>PT50 0036 0073 99100068938 88</strong>. Envie o comprovativo após o registo.</p>
@@ -108,7 +108,7 @@ import { PartnersService } from '../services/partners.service';
             </label>
           </div>
 
-          <button type="submit" class="button button-primary" [disabled]="loading">{{ loading ? 'A registar…' : 'Submeter inscrição' }}</button>
+          <button type="submit" class="button button-primary" [disabled]="loading()">{{ loading() ? 'A registar…' : 'Submeter inscrição' }}</button>
         </form>
       }
     </app-page-intro>
@@ -118,11 +118,11 @@ export class PartnerRegistrationComponent {
   private readonly partnersService = inject(PartnersService);
   private readonly router = inject(Router);
 
-  protected loading = false;
-  protected error = '';
-  protected success = false;
-  protected quotaValue = 50;
-  protected totalAmount = 80;
+  protected loading = signal(false);
+  protected error = signal('');
+  protected success = signal(false);
+  protected quotaValue = signal(50);
+  protected totalAmount = signal(80);
 
   protected readonly form = new FormGroup({
     partnerType: new FormControl('Professional', { nonNullable: true, validators: Validators.required }),
@@ -146,8 +146,8 @@ export class PartnerRegistrationComponent {
   });
 
   protected updatePrices() {
-    this.quotaValue = this.form.controls.partnerType.value === 'Student' ? 20 : 50;
-    this.totalAmount = 30 + this.quotaValue;
+    this.quotaValue.set(this.form.controls.partnerType.value === 'Student' ? 20 : 50);
+    this.totalAmount.set(30 + this.quotaValue());
   }
 
   protected async submit() {
@@ -159,12 +159,12 @@ export class PartnerRegistrationComponent {
     const raw = this.form.getRawValue();
     if (raw.password !== raw.confirmPassword) {
       this.form.controls.confirmPassword.setErrors({ mismatch: true });
-      this.error = 'As palavras-passe não coincidem.';
+      this.error.set('As palavras-passe não coincidem.');
       return;
     }
 
-    this.loading = true;
-    this.error = '';
+    this.loading.set(true);
+    this.error.set('');
     try {
       await this.partnersService.register({
         fullName: raw.fullName,
@@ -185,14 +185,14 @@ export class PartnerRegistrationComponent {
         companyPhone: raw.companyPhone || undefined,
         observations: raw.observations || undefined,
         initiationFee: 30,
-        quotaValue: this.quotaValue,
-        totalAmount: this.totalAmount
+        quotaValue: this.quotaValue(),
+        totalAmount: this.totalAmount()
       });
-      this.success = true;
+      this.success.set(true);
     } catch (e) {
-      this.error = e instanceof Error ? e.message : 'Ocorreu um erro ao registar. Tente novamente.';
+      this.error.set(e instanceof Error ? e.message : 'Ocorreu um erro ao registar. Tente novamente.');
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 }

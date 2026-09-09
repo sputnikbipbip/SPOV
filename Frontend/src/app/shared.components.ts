@@ -1,4 +1,5 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, computed, inject, Input, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { eventMeta, navItems } from './content';
@@ -78,27 +79,27 @@ export class PageIntroComponent {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, NgOptimizedImage],
   template: `
     <header class="site-header">
       <div class="container header-inner">
         <a routerLink="/" class="brand-group" aria-label="Página inicial SPOV">
-          <img class="header-logo" src="assets/images/SPOV_Logo.png" alt="SPOV">
+          <img class="header-logo" ngSrc="assets/images/SPOV_Logo.png" width="443" height="285" alt="SPOV">
         </a>
-        <button type="button" class="menu-toggle" [attr.aria-expanded]="menuOpen" (click)="menuOpen = !menuOpen">Menu</button>
-        <nav class="site-nav" [class.open]="menuOpen" aria-label="Navegação principal">
+        <button type="button" class="menu-toggle" [attr.aria-expanded]="menuOpen()" (click)="toggleMenu()">Menu</button>
+        <nav class="site-nav" [class.open]="menuOpen()" aria-label="Navegação principal">
           @for (item of navItems; track item.path) {
-            <a class="nav-link" [routerLink]="item.path" routerLinkActive="nav-link-active" (click)="menuOpen = false">{{ item.label }}</a>
+            <a class="nav-link" [routerLink]="item.path" routerLinkActive="nav-link-active" (click)="menuOpen.set(false)">{{ item.label }}</a>
           }
           <a class="nav-link" href="https://www.instagram.com/sponcovet/" target="_blank" rel="noopener noreferrer" aria-label="Instagram SPOV">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
             Instagram
           </a>
-          @if (isLoggedIn) {
-            <a class="nav-link" routerLink="/partners/profile" routerLinkActive="nav-link-active" (click)="menuOpen = false">Perfil</a>
+          @if (isLoggedIn()) {
+            <a class="nav-link" routerLink="/partners/profile" routerLinkActive="nav-link-active" (click)="menuOpen.set(false)">Perfil</a>
             <button type="button" class="nav-link nav-logout-btn" (click)="logout()">Sair</button>
           } @else {
-            <a class="button button-primary header-login-btn" routerLink="/partners/login" (click)="menuOpen = false">Área Reservada</a>
+            <a class="button button-primary header-login-btn" routerLink="/partners/login" (click)="menuOpen.set(false)">Área Reservada</a>
           }
         </nav>
       </div>
@@ -110,10 +111,11 @@ export class HeaderComponent {
   private readonly router = inject(Router);
 
   protected readonly navItems = navItems;
-  protected menuOpen = false;
+  protected menuOpen = signal(false);
+  protected readonly isLoggedIn = computed(() => this.authService.isAuthenticated());
 
-  protected get isLoggedIn(): boolean {
-    return this.authService.isAuthenticated();
+  protected toggleMenu() {
+    this.menuOpen.set(!this.menuOpen());
   }
 
   protected logout() {

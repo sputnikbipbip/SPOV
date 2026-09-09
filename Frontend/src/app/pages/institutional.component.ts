@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { posterUrl } from '../content';
 import { PageIntroComponent } from '../shared.components';
@@ -6,7 +7,7 @@ import { PageIntroComponent } from '../shared.components';
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [RouterLink, PageIntroComponent],
+  imports: [RouterLink, PageIntroComponent, NgOptimizedImage],
   template: `
 <app-page-intro eyebrow="A Sociedade" title="Uma sociedade para ligar rigor científico, prática clínica e comunidade." text="A SPOV organiza conhecimento, promove partilha e cria um ponto de referência para profissionais ligados à oncologia veterinária.">
   <div class="split-section">
@@ -16,7 +17,7 @@ import { PageIntroComponent } from '../shared.components';
       <p>A SPOV tem como missão congregar profissionais, investigadores e parceiros interessados na oncologia veterinária, promovendo a atualização científica, a partilha de conhecimento e o desenvolvimento de boas práticas na abordagem ao doente oncológico. Aberta a médicos veterinários, enfermeiros veterinários, estudantes, médicos de medicina humana, investigadores, biólogos e outros interessados.</p>
     </div>
     <div>
-      <img class="section-image" [src]="posterUrl" alt="Identidade visual da SPOV" loading="lazy" decoding="async">
+      <img class="section-image" [ngSrc]="posterUrl" width="1064" height="1146" alt="Identidade visual da SPOV">
     </div>
   </div>
 </app-page-intro>
@@ -91,7 +92,7 @@ export class AboutComponent {
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [PageIntroComponent],
+  imports: [PageIntroComponent, NgOptimizedImage],
   template: `
 <app-page-intro eyebrow="História" title="Um percurso institucional para afirmar a oncologia veterinária." text="Fundada em janeiro de 2025, a SPOV nasce da necessidade de congregar profissionais e promover a oncologia veterinária em Portugal.">
   <div class="split-section">
@@ -101,7 +102,7 @@ export class AboutComponent {
       <p>A Sociedade Portuguesa de Oncologia Veterinária é constituída como associação sem fins lucrativos, com sede em Mafra, distrito de Lisboa. Desde o primeiro momento, a SPOV afirmou-se como um ponto de encontro para médicos veterinários, enfermeiros, investigadores e estudantes interessados em oncologia veterinária e comparada.</p>
     </div>
     <div>
-      <img class="section-image" [src]="posterUrl" alt="Referência visual da SPOV" loading="lazy" decoding="async">
+      <img class="section-image" [ngSrc]="posterUrl" width="1064" height="1146" alt="Referência visual da SPOV">
     </div>
   </div>
 </app-page-intro>
@@ -143,7 +144,7 @@ export class HistoryComponent { protected readonly posterUrl = posterUrl; }
 @Component({
   selector: 'app-governance',
   standalone: true,
-  imports: [PageIntroComponent],
+  imports: [PageIntroComponent, NgOptimizedImage],
   template: `
 <app-page-intro eyebrow="Governação" title="Estrutura clara, documentos essenciais e compromisso com a transparência." text="A SPOV é dirigida por profissionais experientes, com ligações académicas e internacionais, comprometidos com o rigor e a transparência.">
   <div class="split-section">
@@ -153,7 +154,7 @@ export class HistoryComponent { protected readonly posterUrl = posterUrl; }
       <p>A direção da SPOV é composta por profissionais com vasta experiência na área da oncologia veterinária, garantindo a qualidade científica e a gestão rigorosa da associação.</p>
     </div>
     <div>
-      <img class="section-image" src="assets/images/joaquim_henriques.png" alt="Identidade SPOV" loading="lazy" decoding="async">
+      <img class="section-image" ngSrc="assets/images/joaquim_henriques.png" width="780" height="992" alt="Identidade SPOV">
     </div>
   </div>
 </app-page-intro>

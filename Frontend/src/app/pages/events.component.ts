@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { EventMetaComponent } from '../shared.components';
 import { EventsService, EventDto } from '../services/events.service';
@@ -33,9 +33,9 @@ function formatMonth(iso: string): string {
           <span class="eyebrow">Eventos</span>
           <h1>Eventos SPOV</h1>
         </div>
-        @if (events.length === 0) { <p class="empty-state">Ainda não há eventos agendados.</p> }
+        @if (events().length === 0) { <p class="empty-state">Ainda não há eventos agendados.</p> }
         <div class="events-grid">
-        @for (event of events; track event.id) {
+        @for (event of events(); track event.id) {
           <article class="event-card" [class.event-card-past]="eventStatus(event.startDate, event.endDate).cls === 'event-status-past'">
             @if (event.imageData) {
               <img class="event-card-image" [src]="event.imageData" [alt]="event.title" loading="lazy" decoding="async">
@@ -65,7 +65,7 @@ function formatMonth(iso: string): string {
 })
 export class EventsComponent implements OnInit {
   private readonly eventsService = inject(EventsService);
-  protected events: EventDto[] = [];
+  protected events = signal<EventDto[]>([]);
   protected readonly eventStatus = eventStatus;
   protected readonly formatDay = formatDay;
   protected readonly formatMonth = formatMonth;
@@ -73,9 +73,9 @@ export class EventsComponent implements OnInit {
   async ngOnInit() {
     try {
       const response = await this.eventsService.getAll({ pageSize: 50 });
-      this.events = response.data;
+      this.events.set(response.data);
     } catch {
-      this.events = [];
+      this.events.set([]);
     }
   }
 }
