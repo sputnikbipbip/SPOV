@@ -1,9 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Scrutor;
 using SPOV.Infrastructure.Data;
 
@@ -13,11 +10,21 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        bool isDevelopment = false)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
+        {
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")
-                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
+                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
+
+            if (isDevelopment)
+            {
+                options.LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information)
+                       .EnableSensitiveDataLogging()
+                       .EnableDetailedErrors();
+            }
+        });
 
         services.Scan(scan => scan
             .FromAssembliesOf(typeof(DependencyInjection))
