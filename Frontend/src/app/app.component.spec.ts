@@ -31,6 +31,20 @@ describe('AppComponent', () => {
     expect(el.querySelector('app-footer')).not.toBeNull();
   });
 
+  it('exposes an accessible mobile menu toggle that opens the primary navigation', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const toggle = el.querySelector('.menu-toggle') as HTMLButtonElement;
+
+    expect(toggle.getAttribute('aria-label')).toBe('Abrir menu principal');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(toggle.getAttribute('aria-label')).toBe('Fechar menu principal');
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(el.querySelector('#primary-navigation')?.classList.contains('open')).toBe(true);
+  });
+
   it('hides header and footer on admin dashboard', async () => {
     localStorage.setItem('spov_token', 'fake-token');
     const nav = router.navigateByUrl('/admin/events');

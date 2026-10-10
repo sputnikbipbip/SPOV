@@ -107,11 +107,28 @@ describe('MembershipComponent', () => {
   });
 
   it('renders benefits section', () => {
-    expect(fixture.nativeElement.textContent).toContain('Vantagens claras');
+    expect(fixture.nativeElement.textContent).toContain('Faça parte da comunidade SPOV');
   });
 
   it('renders CTA link to join', () => {
     expect(fixture.nativeElement.textContent).toContain('Aderir à SPOV');
+  });
+
+  it('links the prominent join action and information action to their pages', () => {
+    const joinLink = fixture.nativeElement.querySelector('.membership-join-cta') as HTMLAnchorElement;
+    const informationLink = fixture.nativeElement.querySelector('.membership-information-cta') as HTMLAnchorElement;
+
+    expect(joinLink.getAttribute('href')).toBe('/partners/join');
+    expect(informationLink.getAttribute('href')).toBe('/contacts');
+    expect(informationLink.textContent).toContain('Pedir informação');
+  });
+
+  it('shows distinct benefit cards without repeating the same poster image', () => {
+    const cards = fixture.nativeElement.querySelectorAll('.membership-benefit-card');
+
+    expect(cards).toHaveLength(3);
+    expect(fixture.nativeElement.querySelector('.membership-benefit-card img')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.membership-information-form')).toBeNull();
   });
 });
 

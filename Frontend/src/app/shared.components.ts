@@ -86,8 +86,17 @@ export class PageIntroComponent {
         <a routerLink="/" class="brand-group" aria-label="Página inicial SPOV">
           <img class="header-logo" ngSrc="assets/images/SPOV_Logo.png" width="443" height="285" alt="SPOV">
         </a>
-        <button type="button" class="menu-toggle" [attr.aria-expanded]="menuOpen()" (click)="toggleMenu()">Menu</button>
-        <nav class="site-nav" [class.open]="menuOpen()" aria-label="Navegação principal">
+        <button
+          type="button"
+          class="menu-toggle"
+          [attr.aria-label]="menuOpen() ? 'Fechar menu principal' : 'Abrir menu principal'"
+          [attr.aria-expanded]="menuOpen()"
+          aria-controls="primary-navigation"
+          (click)="toggleMenu()">
+          <span class="menu-toggle-icon" [class.menu-toggle-icon--open]="menuOpen()" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>{{ menuOpen() ? 'Fechar' : 'Menu' }}</span>
+        </button>
+        <nav id="primary-navigation" class="site-nav" [class.open]="menuOpen()" aria-label="Navegação principal">
           @for (item of navItems; track item.path) {
             <a class="nav-link" [routerLink]="item.path" routerLinkActive="nav-link-active" (click)="menuOpen.set(false)">{{ item.label }}</a>
           }

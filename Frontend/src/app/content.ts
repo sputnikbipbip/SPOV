@@ -20,9 +20,10 @@ export const benefits = [
 ];
 
 export const membershipFaq = [
-  ['Quem pode pedir informação?', 'Profissionais, estudantes, investigadores e parceiros com interesse em oncologia veterinária.'],
-  ['A adesão é imediata?', 'O formulário serve como primeiro contacto para validação e acompanhamento pela SPOV.'],
-  ['Há benefícios em eventos?', 'A página está preparada para destacar condições especiais e parcerias ativas.']
+  ['Quem pode aderir?', 'Profissionais, estudantes, investigadores e parceiros com interesse em oncologia veterinária.'],
+  ['Como funciona a adesão?', 'Preencha a inscrição online, confirme o seu email e envie o comprovativo de pagamento para validação.'],
+  ['Qual é o valor da quota anual?', 'A quota é de €50 para profissionais e €20 para estudantes. Acresce a jóia inicial de €30.'],
+  ['Quando fica ativa a inscrição?', 'A inscrição fica ativa depois de a SPOV validar o pagamento.']
 ];
 
 export const speakers = [
