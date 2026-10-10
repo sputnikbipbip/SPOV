@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -11,10 +11,71 @@ import { EventsService, PartnerRegistrationDto } from '../services/events.servic
 @Component({
   selector: 'app-partner-profile',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, PageIntroComponent, DatePipe],
+  imports: [RouterLink, ReactiveFormsModule, PageIntroComponent, DatePipe, CurrencyPipe],
+  styles: [`
+    .profile-page { padding-top: 2.75rem; }
+    .profile-dashboard { width: min(100%, 960px); margin-inline: auto; }
+    .profile-overview, .profile-panel, .profile-detail-card {
+      background: var(--spov-white);
+      border: 1px solid var(--spov-line);
+      border-radius: 18px;
+      box-shadow: var(--shadow-soft);
+    }
+    .profile-overview { padding: clamp(1.25rem, 3vw, 2rem); }
+    .profile-overview__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+    .profile-identity { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+    .profile-avatar {
+      display: grid; place-items: center; flex: 0 0 3.5rem; width: 3.5rem; height: 3.5rem;
+      border-radius: 50%; background: var(--spov-teal); color: var(--spov-white); font-weight: 700; font-size: 1.1rem;
+    }
+    .profile-identity h2 { margin: 0.15rem 0; font-size: clamp(1.35rem, 3vw, 1.8rem); overflow-wrap: anywhere; }
+    .profile-identity p { margin: 0; color: var(--spov-muted); overflow-wrap: anywhere; }
+    .profile-kicker, .profile-summary-label { color: var(--spov-muted); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .profile-status { flex: 0 0 auto; border-radius: 999px; padding: 0.45rem 0.8rem; font-size: 0.82rem; font-weight: 700; }
+    .profile-status--active { background: rgba(15, 143, 151, 0.12); color: #087980; }
+    .profile-status--pending { background: #fff3cf; color: #775500; }
+    .profile-status--other { background: #eef1f1; color: var(--spov-ink); }
+    .profile-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1.5rem; }
+    .profile-summary-item { display: grid; gap: 0.35rem; min-width: 0; padding: 0.9rem 1rem; border-radius: 12px; background: var(--spov-soft-gray); }
+    .profile-summary-item strong { overflow-wrap: anywhere; }
+    .profile-overview__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.65rem; margin-top: 1.25rem; }
+    .profile-dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .profile-detail-card, .profile-panel { padding: 1.35rem; min-width: 0; }
+    .profile-detail-card h3, .profile-panel h3 { margin: 0; font-size: 1.05rem; }
+    .profile-panel-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+    .profile-panel-heading p { margin: 0.35rem 0 0; color: var(--spov-muted); font-size: 0.9rem; }
+    .profile-detail-list { display: grid; gap: 0.8rem; margin: 1rem 0 0; }
+    .profile-detail-list > div { display: grid; grid-template-columns: minmax(7rem, 0.7fr) minmax(0, 1.3fr); gap: 0.75rem; }
+    .profile-detail-list dt { color: var(--spov-muted); font-size: 0.88rem; }
+    .profile-detail-list dd { margin: 0; font-size: 0.94rem; overflow-wrap: anywhere; }
+    .profile-panel--wide { margin-top: 1rem; }
+    .profile-record-list { display: grid; gap: 0.65rem; margin: 0; padding: 0; list-style: none; }
+    .profile-record-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid var(--spov-line); border-radius: 12px; }
+    .profile-record-main { display: grid; gap: 0.4rem; min-width: 0; }
+    .profile-record-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; color: var(--spov-muted); font-size: 0.86rem; }
+    .profile-record-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.55rem; flex: 0 0 auto; }
+    .profile-review-note { margin: 0.2rem 0 0; color: #8a3b28; font-size: 0.88rem; }
+    .profile-upload-control { display: grid; gap: 0.45rem; margin: 0.75rem 0; color: var(--spov-muted); font-size: 0.9rem; }
+    .profile-file-name { margin: 0 0 0.75rem; color: var(--spov-ink); overflow-wrap: anywhere; }
+    .profile-account-actions { display: flex; justify-content: flex-end; margin-top: 1rem; }
+    .profile-account-actions .button { border: 0; background: transparent; color: var(--spov-muted); }
+    .profile-account-actions .button:hover { color: #b42318; }
+
+    @media (max-width: 720px) {
+      .profile-page { padding-top: 1.5rem; }
+      .profile-summary-grid { grid-template-columns: 1fr; }
+      .profile-dashboard-grid { grid-template-columns: 1fr; }
+      .profile-overview__top { align-items: flex-start; }
+      .profile-avatar { flex-basis: 2.8rem; width: 2.8rem; height: 2.8rem; }
+      .profile-record-card { align-items: stretch; flex-direction: column; }
+      .profile-record-actions { justify-content: flex-start; }
+      .profile-detail-list > div { grid-template-columns: minmax(6rem, 0.7fr) minmax(0, 1.3fr); }
+      .profile-account-actions { justify-content: flex-start; }
+    }
+  `],
   template: `
     <app-page-intro eyebrow="Sócios" title="O meu perfil" text="Consulte os seus dados de sócio e o estado da sua subscrição." />
-    <section class="section">
+    <section class="section profile-page">
       <div class="container">
         @if (loading()) { <p class="empty-state">A carregar perfil…</p> }
         @if (error()) {
@@ -24,106 +85,169 @@ import { EventsService, PartnerRegistrationDto } from '../services/events.servic
           </div>
         }
         @if (profile() && !editing()) {
-          <div class="profile-card">
-            <div class="profile-header">
-              <h2>{{ profile()!.fullName }}</h2>
-              <span class="badge" [class.badge-yellow]="profile()!.membershipStatus === 'Pending'" [class.badge-dark]="profile()!.membershipStatus === 'Active'">{{ statusLabel() }}</span>
-            </div>
-            @if (proofError()) { <div class="form-error-banner">{{ proofError() }}</div> }
+          <div class="profile-dashboard">
+            @if (proofError()) { <div class="form-error-banner" role="alert">{{ proofError() }}</div> }
 
-            <div class="profile-section">
-              <h3>Informação Pessoal</h3>
-              <dl class="profile-dl">
-                <dt>Email</dt>
-                <dd>{{ profile()!.email }}</dd>
-                <dt>Telefone</dt>
-                <dd>{{ profile()!.phone }}</dd>
-                @if (profile()!.taxId) { <dt>NIF</dt><dd>{{ profile()!.taxId }}</dd> }
-                @if (profile()!.birthDate) { <dt>Data de Nascimento</dt><dd>{{ profile()!.birthDate | date:'dd/MM/yyyy' }}</dd> }
-                @if (profile()!.address) { <dt>Morada</dt><dd>{{ profile()!.address }}{{ profile()!.city ? ', ' + profile()!.city : '' }}{{ profile()!.zipCode ? ' - ' + profile()!.zipCode : '' }}</dd> }
-              </dl>
-            </div>
-
-            <div class="profile-section">
-              <h3>Informação Profissional</h3>
-              <dl class="profile-dl">
-                <dt>Tipo de Sócio</dt>
-                <dd>{{ profile()!.partnerType === 'Student' ? 'Estudante' : 'Profissional' }}</dd>
-                @if (profile()!.profession) { <dt>Profissão</dt><dd>{{ profile()!.profession }}</dd> }
-                @if (profile()!.companyName) { <dt>Empresa</dt><dd>{{ profile()!.companyName }}</dd> }
-                @if (profile()!.professionalCardNumber) { <dt>Cédula Profissional</dt><dd>{{ profile()!.professionalCardNumber }}</dd> }
-                @if (profile()!.academicQualifications) { <dt>Habilitações</dt><dd>{{ profile()!.academicQualifications }}</dd> }
-              </dl>
-            </div>
-
-            <div class="profile-section">
-              <h3>Subscrição</h3>
-              <dl class="profile-dl">
-                <dt>Estado</dt>
-                <dd>{{ statusLabel() }}</dd>
-                <dt>Membro desde</dt>
-                <dd>{{ profile()!.joinedAt | date:'dd/MM/yyyy' }}</dd>
-                @if (profile()!.membershipExpiresAt) {
-                  <dt>Válido até</dt>
-                  <dd>{{ profile()!.membershipExpiresAt | date:'dd/MM/yyyy' }}</dd>
-                }
-                @if (profile()!.membershipTierName) {
-                  <dt>Plano</dt>
-                  <dd>{{ profile()!.membershipTierName }}</dd>
-                }
-              </dl>
-
-              @if (profile()!.payments.length > 0) {
-                <h4>Histórico de Pagamentos</h4>
-                <div class="payment-list">
-                  @for (p of profile()!.payments; track p.id) {
-                    <div class="payment-row">
-                      <span class="payment-date">{{ p.createdAt | date:'dd/MM/yyyy' }}</span>
-                      <span class="payment-amount">€{{ p.amount.toFixed(2) }}</span>
-                      <span class="badge" [class.badge-yellow]="p.status === 'Pending' || p.status === 'Submitted'" [class.badge-dark]="p.status === 'Verified' || p.status === 'Completed'" [class.badge-outline]="p.status === 'Rejected'">{{ paymentStatusLabel(p.status) }}</span>
-                      @if (p.proofFileName) {
-                        <button type="button" class="button button-secondary" style="font-size:0.8rem;padding:0.25rem 0.5rem;" [disabled]="proofDownloadingId() === p.id" (click)="downloadProof(p)">{{ proofDownloadingId() === p.id ? 'A descarregar…' : 'Ver comprovativo' }}</button>
-                      }
-                      @if (p.reviewNote) { <small class="form-privacy-note">{{ p.reviewNote }}</small> }
-                    </div>
-                  }
+            <section class="profile-overview" aria-label="Resumo de sócio">
+              <div class="profile-overview__top">
+                <div class="profile-identity">
+                  <span class="profile-avatar" aria-hidden="true">{{ initials() }}</span>
+                  <div>
+                    <span class="profile-kicker">Área do sócio</span>
+                    <h2>{{ profile()!.fullName }}</h2>
+                    <p>{{ profile()!.email }}</p>
+                  </div>
                 </div>
-              }
+                <span class="profile-status"
+                  [class.profile-status--active]="profile()!.membershipStatus === 'Active'"
+                  [class.profile-status--pending]="profile()!.membershipStatus === 'Pending'"
+                  [class.profile-status--other]="profile()!.membershipStatus !== 'Active' && profile()!.membershipStatus !== 'Pending'">
+                  {{ statusLabel() }}
+                </span>
+              </div>
+
+              <div class="profile-summary-grid" aria-label="Resumo da subscrição">
+                <div class="profile-summary-item">
+                  <span class="profile-summary-label">Plano</span>
+                  <strong>{{ profile()!.membershipTierName || (profile()!.partnerType === 'Student' ? 'Estudante' : 'Profissional') }}</strong>
+                </div>
+                <div class="profile-summary-item">
+                  <span class="profile-summary-label">Membro desde</span>
+                  <strong>{{ profile()!.joinedAt | date:'dd/MM/yyyy' }}</strong>
+                </div>
+                <div class="profile-summary-item">
+                  <span class="profile-summary-label">Válido até</span>
+                  <strong>{{ profile()!.membershipExpiresAt ? (profile()!.membershipExpiresAt | date:'dd/MM/yyyy') : 'Por confirmar' }}</strong>
+                </div>
+              </div>
+
+              <div class="profile-overview__actions">
+                <button type="button" class="button button-primary" (click)="toggleEdit()">Editar Perfil</button>
+                <a routerLink="/documents" class="button button-secondary">Documentos</a>
+                @if (needsPaymentProof()) {
+                  <a href="#profile-payment-proof" class="button button-secondary">Enviar comprovativo</a>
+                }
+              </div>
+            </section>
+
+            <div class="profile-dashboard-grid">
+              <section class="profile-detail-card" aria-labelledby="profile-personal-heading">
+                <h3 id="profile-personal-heading">Informação pessoal</h3>
+                <dl class="profile-detail-list">
+                  <div><dt>Telefone</dt><dd>{{ profile()!.phone }}</dd></div>
+                  @if (profile()!.taxId) { <div><dt>NIF</dt><dd>{{ profile()!.taxId }}</dd></div> }
+                  @if (profile()!.birthDate) { <div><dt>Nascimento</dt><dd>{{ profile()!.birthDate | date:'dd/MM/yyyy' }}</dd></div> }
+                  @if (profile()!.address || profile()!.city || profile()!.zipCode) {
+                    <div><dt>Morada</dt><dd>{{ profile()!.address }}{{ profile()!.city ? ', ' + profile()!.city : '' }}{{ profile()!.zipCode ? ' · ' + profile()!.zipCode : '' }}</dd></div>
+                  }
+                  @if (profile()!.country) { <div><dt>País</dt><dd>{{ profile()!.country }}</dd></div> }
+                </dl>
+              </section>
+
+              <section class="profile-detail-card" aria-labelledby="profile-professional-heading">
+                <h3 id="profile-professional-heading">Informação profissional</h3>
+                <dl class="profile-detail-list">
+                  <div><dt>Tipo de sócio</dt><dd>{{ profile()!.partnerType === 'Student' ? 'Estudante' : 'Profissional' }}</dd></div>
+                  @if (profile()!.profession) { <div><dt>Profissão</dt><dd>{{ profile()!.profession }}</dd></div> }
+                  @if (profile()!.companyName) { <div><dt>Empresa</dt><dd>{{ profile()!.companyName }}</dd></div> }
+                  @if (profile()!.companyPhone) { <div><dt>Telefone da empresa</dt><dd>{{ profile()!.companyPhone }}</dd></div> }
+                  @if (profile()!.professionalCardNumber) { <div><dt>Cédula</dt><dd>{{ profile()!.professionalCardNumber }}</dd></div> }
+                  @if (profile()!.academicQualifications) { <div><dt>Habilitações</dt><dd>{{ profile()!.academicQualifications }}</dd></div> }
+                </dl>
+              </section>
             </div>
+
+            <section class="profile-panel profile-panel--wide" aria-labelledby="profile-payments-heading">
+              <div class="profile-panel-heading">
+                <div>
+                  <h3 id="profile-payments-heading">Pagamentos</h3>
+                  <p>Consulte o estado dos seus pagamentos e respetivos comprovativos.</p>
+                </div>
+              </div>
+              @if (profile()!.payments.length > 0) {
+                <ul class="profile-record-list">
+                  @for (p of profile()!.payments; track p.id) {
+                    <li class="profile-record-card">
+                      <div class="profile-record-main">
+                        <strong>{{ p.amount | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                        <div class="profile-record-meta">
+                          <span>Registado a {{ p.createdAt | date:'dd/MM/yyyy' }}</span>
+                          <span class="badge" [class.badge-yellow]="p.status === 'Pending' || p.status === 'Submitted'" [class.badge-dark]="p.status === 'Verified' || p.status === 'Completed'" [class.badge-outline]="p.status === 'Rejected'">{{ paymentStatusLabel(p.status) }}</span>
+                        </div>
+                        @if (p.reviewNote) { <p class="profile-review-note">{{ p.reviewNote }}</p> }
+                      </div>
+                      @if (p.proofFileName) {
+                        <div class="profile-record-actions">
+                          <button type="button" class="button button-secondary" [disabled]="proofDownloadingId() === p.id" (click)="downloadProof(p)">{{ proofDownloadingId() === p.id ? 'A descarregar…' : 'Ver comprovativo' }}</button>
+                        </div>
+                      }
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="empty-state">Ainda não existem pagamentos registados.</p>
+              }
+            </section>
 
             @if (needsPaymentProof()) {
-              <div class="profile-section">
-                <h3>Enviar comprovativo</h3>
-                <p class="form-privacy-note">Aceitamos PDF, JPEG ou PNG até 10 MB.</p>
-                @if (proofSuccess()) { <div class="success-banner">Comprovativo enviado. A aguardar validação.</div> }
-                <input type="file" accept="application/pdf,image/jpeg,image/png" (change)="selectProof($event)">
-                @if (selectedProof()) { <p>{{ selectedProof()!.name }}</p> }
+              <section id="profile-payment-proof" class="profile-panel profile-panel--wide" aria-labelledby="profile-proof-heading">
+                <div class="profile-panel-heading">
+                  <div>
+                    <h3 id="profile-proof-heading">Enviar comprovativo</h3>
+                    <p>Aceitamos PDF, JPEG ou PNG até 10 MB.</p>
+                  </div>
+                </div>
+                @if (proofSuccess()) { <div class="success-banner" role="status">Comprovativo enviado. A aguardar validação.</div> }
+                <label class="profile-upload-control">Selecionar ficheiro
+                  <input type="file" accept="application/pdf,image/jpeg,image/png" (change)="selectProof($event)">
+                </label>
+                @if (selectedProof()) { <p class="profile-file-name">{{ selectedProof()!.name }}</p> }
                 <button type="button" class="button button-primary" [disabled]="!selectedProof() || proofUploading()" (click)="uploadProof()">{{ proofUploading() ? 'A enviar…' : 'Enviar comprovativo' }}</button>
-              </div>
+              </section>
             }
 
-            @if (registrations().length > 0) {
-              <div class="profile-section">
-                <h3>Inscrições em Eventos</h3>
-                <div class="payment-list">
-                  @for (r of registrations(); track r.id) {
-                    <div class="payment-row">
-                      <span class="payment-date">{{ r.registeredAt | date:'dd/MM/yyyy' }}</span>
-                      <span class="payment-amount">{{ r.eventTitle }}</span>
-                      <a [routerLink]="'/events/' + r.eventId" class="badge badge-dark" style="text-decoration:none;">Ver evento</a>
-                      <button type="button" class="button button-danger" style="font-size:0.8rem;padding:0.25rem 0.5rem;" [disabled]="cancellingId() === r.eventId" (click)="cancelRegistration(r.eventId)">{{ cancellingId() === r.eventId ? 'A cancelar…' : 'Cancelar' }}</button>
-                    </div>
-                  }
+            <section class="profile-panel profile-panel--wide" aria-labelledby="profile-events-heading">
+              <div class="profile-panel-heading">
+                <div>
+                  <h3 id="profile-events-heading">Inscrições em eventos</h3>
+                  <p>Os eventos em que já tem lugar reservado.</p>
                 </div>
-                @if (cancelError()) { <div class="form-error-banner" style="margin-top:0.5rem;">{{ cancelError() }}</div> }
+                <a routerLink="/events" class="button button-secondary">Ver eventos</a>
               </div>
+              @if (registrations().length > 0) {
+                <ul class="profile-record-list">
+                  @for (r of registrations(); track r.id) {
+                    <li class="profile-record-card profile-registration-card">
+                      <div class="profile-record-main">
+                        <strong>{{ r.eventTitle }}</strong>
+                        <div class="profile-record-meta">
+                          <span>Evento a {{ r.eventStartDate | date:'dd/MM/yyyy' }}</span>
+                          <span>Inscrito a {{ r.registeredAt | date:'dd/MM/yyyy' }}</span>
+                        </div>
+                      </div>
+                      <div class="profile-record-actions">
+                        <a [routerLink]="'/events/' + r.eventId" class="button button-secondary">Ver evento</a>
+                        <button type="button" class="button button-danger" [disabled]="cancellingId() === r.eventId" (click)="cancelRegistration(r.eventId)">{{ cancellingId() === r.eventId ? 'A cancelar…' : 'Cancelar' }}</button>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="empty-state">Ainda não tem inscrições em eventos.</p>
+              }
+              @if (cancelError()) { <div class="form-error-banner" role="alert">{{ cancelError() }}</div> }
+            </section>
+
+            @if (profile()!.observations) {
+              <section class="profile-panel profile-panel--wide" aria-labelledby="profile-notes-heading">
+                <h3 id="profile-notes-heading">Observações</h3>
+                <p>{{ profile()!.observations }}</p>
+              </section>
             }
-          </div>
-          <div class="profile-actions">
-            <a routerLink="/" class="button button-secondary">Voltar ao início</a>
-            <button type="button" class="button button-secondary" (click)="toggleEdit()">Editar Perfil</button>
-            <a routerLink="/documents" class="button button-secondary">Documentos</a>
-            <button type="button" class="button button-danger" (click)="logout()">Terminar Sessão</button>
+
+            <div class="profile-account-actions">
+              <button type="button" class="button" (click)="logout()">Terminar sessão</button>
+            </div>
           </div>
         }
         @if (profile() && editing()) {
@@ -166,6 +290,14 @@ export class PartnerProfileComponent {
   private readonly router = inject(Router);
 
   protected profile = signal<PartnerProfileDto | null>(null);
+  protected readonly initials = computed(() =>
+    (this.profile()?.fullName ?? '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0].toLocaleUpperCase())
+      .join('') || 'SP');
   protected registrations = signal<PartnerRegistrationDto[]>([]);
   protected loading = signal(true);
   protected error = signal('');

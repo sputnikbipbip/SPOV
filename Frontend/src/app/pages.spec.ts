@@ -153,7 +153,21 @@ describe('PartnerLoginComponent', () => {
 });
 
 describe('PartnerProfileComponent', () => {
-  const profileData = { id: 1, fullName: 'Maria', email: 'maria@test.com', phone: '+351900000000', partnerType: 'Professional', membershipStatus: 'Active', joinedAt: '2025-01-01', payments: [], initiationFee: 30, quotaValue: 50, totalAmount: 80 };
+  const profileData = {
+    id: 1,
+    fullName: 'Maria',
+    email: 'maria@test.com',
+    phone: '+351900000000',
+    partnerType: 'Professional',
+    membershipStatus: 'Active',
+    membershipTierName: 'Plano Profissional',
+    membershipExpiresAt: '2027-01-01',
+    joinedAt: '2025-01-01',
+    payments: [],
+    initiationFee: 30,
+    quotaValue: 50,
+    totalAmount: 80
+  };
 
   function createFixture() {
     TestBed.configureTestingModule({ imports: [PartnerProfileComponent], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)] });
@@ -210,6 +224,45 @@ describe('PartnerProfileComponent', () => {
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Documentos');
+  });
+
+  it('shows a compact membership overview before the profile details', async () => {
+    const { fixture, httpMock } = createFixture();
+    fixture.detectChanges();
+    await flushProfile(httpMock);
+    await microtaskTick();
+    fixture.detectChanges();
+
+    const overview = fixture.nativeElement.querySelector('.profile-overview') as HTMLElement;
+    const details = fixture.nativeElement.querySelector('.profile-dashboard-grid') as HTMLElement;
+    expect(overview).not.toBeNull();
+    expect(details).not.toBeNull();
+    expect(overview.textContent).toContain('Ativo');
+    expect(overview.textContent).toContain('Plano Profissional');
+    expect(overview.textContent).toContain('01/01/2027');
+  });
+
+  it('renders event registrations as distinct responsive cards', async () => {
+    const { fixture, httpMock } = createFixture();
+    fixture.detectChanges();
+    httpMock.expectOne('/api/partners/my-profile').flush(profileData);
+    await microtaskTick();
+    httpMock.expectOne('/api/partners/me/registrations').flush([{
+      id: 7,
+      eventId: 3,
+      registeredAt: '2026-10-10T10:00:00Z',
+      eventTitle: 'Workshop de Demonstração',
+      eventStartDate: '2026-10-20T09:00:00Z',
+      eventEndDate: '2026-10-20T12:00:00Z'
+    }]);
+    await microtaskTick();
+    fixture.detectChanges();
+
+    const registration = fixture.nativeElement.querySelector('.profile-registration-card') as HTMLElement;
+    expect(registration).not.toBeNull();
+    expect(registration.textContent).toContain('Workshop de Demonstração');
+    expect(registration.querySelector('a[href="/events/3"]')).not.toBeNull();
+    expect(registration.textContent).toContain('Cancelar');
   });
 });
 
