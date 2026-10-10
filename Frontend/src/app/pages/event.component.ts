@@ -57,7 +57,7 @@ function formatDateRange(start: string, end: string): string {
                 <span class="badge badge-dark" style="font-size:1rem;">Inscrito</span>
                 <button type="button" class="button button-danger" [disabled]="cancelLoading()" (click)="cancel()">{{ cancelLoading() ? 'A cancelar…' : 'Cancelar inscrição' }}</button>
               } @else {
-                <button type="button" class="button button-primary" [disabled]="registerLoading()" (click)="register()">{{ registerLoading() ? 'A registar…' : 'Inscrever como sócio' }}</button>
+                <button type="button" class="button button-light event-register-cta" [disabled]="registerLoading()" (click)="register()">{{ registerLoading() ? 'A registar…' : 'Inscrever como sócio' }}</button>
               }
             } @else {
               <a routerLink="/partners/login" class="button button-light">Inscrever-me</a>

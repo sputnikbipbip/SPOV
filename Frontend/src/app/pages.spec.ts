@@ -336,6 +336,8 @@ describe('EventComponent', () => {
     await microtaskTick();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Inscrever como sócio');
+    const registerButton = fixture.nativeElement.querySelector('.event-register-cta') as HTMLButtonElement;
+    expect(registerButton.classList.contains('button-light')).toBe(true);
     localStorage.clear();
   });
 
