@@ -20,7 +20,7 @@ public sealed class EventServiceTests
     public EventServiceTests()
     {
         _eventRepository = Substitute.For<IEventRepository>();
-        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>()).CreateMapper();
+        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance).CreateMapper();
         _sut = new EventService(_eventRepository, _mapper);
     }
 

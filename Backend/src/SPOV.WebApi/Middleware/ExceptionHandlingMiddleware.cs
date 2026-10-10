@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SPOV.WebApi.Middleware;
 
@@ -23,21 +24,22 @@ public class ExceptionHandlingMiddleware
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unhandled exception occurred.");
-            await HandleExceptionAsync(context, ex);
+            await HandleExceptionAsync(context);
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static async Task HandleExceptionAsync(HttpContext context)
     {
-        context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        context.Response.ContentType = "application/problem+json";
 
-        var result = JsonSerializer.Serialize(new
+        var problem = new ProblemDetails
         {
-            error = "An internal server error occurred.",
-            detail = exception.Message
-        });
+            Status = StatusCodes.Status500InternalServerError,
+            Title = "An internal server error occurred.",
+            Type = "https://httpstatuses.com/500"
+        };
 
-        await context.Response.WriteAsync(result);
+        await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
     }
 }

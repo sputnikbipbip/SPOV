@@ -106,7 +106,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@spov.pt", "password": "Admin123!"}'
+  -d '{"email": "<admin-email>", "password": "<admin-password>"}'
 ```
 This returns a response like:
 ```json
@@ -214,10 +214,10 @@ When the application starts for the first time, it creates:
 
 | Type | Value |
 |------|-------|
-| Administrator user | `admin@spov.pt` / `Admin123!` |
+| Administrator user | Created only when `AdminBootstrap:Email` and `AdminBootstrap:Password` are configured. |
 | Roles created | `Administrator`, `Partner` |
 
-This means you can immediately log in as admin and start using the system.
+Configure bootstrap credentials in .NET User Secrets for local development or in the deployment's secret manager. Without them, the application creates the roles but no administrator user.
 
 ---
 
@@ -459,7 +459,7 @@ All errors follow a consistent format:
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@spov.pt", "password": "Admin123!"}'
+  -d '{"email": "<admin-email>", "password": "<admin-password>"}'
 ```
 Save the `accessToken` from the response.
 

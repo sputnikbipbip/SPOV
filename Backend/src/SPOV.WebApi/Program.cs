@@ -12,17 +12,25 @@ using SPOV.WebApi.Extensions;
 using SPOV.WebApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+var seedDevelopmentData = args.Any(argument =>
+    argument.Equals("--seed-dev", StringComparison.OrdinalIgnoreCase)
+    || argument.Equals("--seed-dev=true", StringComparison.OrdinalIgnoreCase));
+if (seedDevelopmentData && !builder.Environment.IsDevelopment())
+    throw new InvalidOperationException("The --seed-dev command can only run in the Development environment.");
 
 // --- 1. Service Registration ---
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddScoped<DevelopmentDataSeeder>();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
 builder.Services.AddEndpointsApiExplorer();
 
 // Database & Identity
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
+builder.Services.AddInfrastructure(
+    builder.Configuration,
+    builder.Environment.IsDevelopment() && !seedDevelopmentData);
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -38,9 +46,13 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, EmailSenderService>
 // CORS
 builder.Services.AddCors(options =>
 {
+    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+    if (!builder.Environment.IsDevelopment() && allowedOrigins.Length == 0)
+        throw new InvalidOperationException("Configure Cors:AllowedOrigins before starting outside Development.");
+
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -77,6 +89,13 @@ var app = builder.Build();
 // --- 2. Database Initialization ---
 await app.ApplyMigrationsAsync();
 await app.SeedDataAsync();
+
+if (seedDevelopmentData)
+{
+    using var scope = app.Services.CreateScope();
+    await scope.ServiceProvider.GetRequiredService<DevelopmentDataSeeder>().SeedAsync();
+    return;
+}
 
 // --- 3. Middleware Pipeline ---
 if (app.Environment.IsDevelopment())

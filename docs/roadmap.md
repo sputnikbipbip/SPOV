@@ -1,10 +1,12 @@
-# SPOV Project Roadmap — Missing Features & Work to Implement
+# SPOV Project Roadmap — Remaining Work
+
+> This roadmap was reconciled against the code on 2026-10-09. Treat the status notes below as current; several earlier gap lists were stale.
 
 ## 1. Testing
 
-### 1.1 Frontend Tests (Critical — AGENTS.md mandates TDD)
+### 1.1 Frontend Tests
 
-No `.spec.ts` files exist. Every component, service, and guard needs tests.
+Frontend tests exist and currently pass (7 suites, 137 tests). Continue adding focused tests when changing behavior; prioritize untested routes and error states rather than duplicating existing coverage.
 
 | File | Test type | What to test |
 |------|-----------|--------------|
@@ -18,7 +20,7 @@ No `.spec.ts` files exist. Every component, service, and guard needs tests.
 
 ### 1.2 Backend Test Coverage
 
-Current: 34 tests. Missing coverage for:
+Backend tests currently include unit and PostgreSQL-backed integration coverage. Remaining useful coverage includes:
 
 - Events controller (create, update, delete policies)
 - Partner registration validation edge cases
@@ -41,8 +43,8 @@ Current: 34 tests. Missing coverage for:
 | **Partner detail page** in admin | Can list partners but cannot view/edit an individual partner's full profile. |
 | **Edit partner** in admin | No way to update partner data or membership tier. |
 | **Delete partner** in admin | No way to remove a partner. |
-| **Event registration list** in admin | API exists (`GET /api/events/{id}/registrations`) but no frontend page to see who registered. |
-| **Payment verification workflow** — mark payments as received | Admin cannot see payment proofs or mark them as verified. |
+| ~~**Event registration list** in admin~~ | Implemented in the admin events page. |
+| ~~**Payment verification workflow**~~ | Implemented in partner profile and admin partner details, including proof download, verify, reject, and review notes. |
 | **Article management** | API endpoints exist but no admin frontend for article CRUD. |
 
 ### 2.2 Missing Partner Features
@@ -51,7 +53,7 @@ Current: 34 tests. Missing coverage for:
 |---------|--------|
 | **Password reset page** | API has `forgotPassword`/`resetPassword` but no frontend UI. |
 | **Edit own profile** | Partner cannot update their own info after registration. |
-| **Upload payment proof** after registration | The profile shows a proof URL but there is no upload form on the registration success page or in the profile. |
+| ~~**Upload payment proof** after registration | Implemented on the partner profile, with status and rejection-note display. |
 | **Event registration from partner profile** | No way for partners to see or manage their event registrations. |
 | **Documents page** | API has document endpoints but no frontend page for partners to access documents. |
 
@@ -88,10 +90,9 @@ Current: 34 tests. Missing coverage for:
 | `PUT /api/partners/{id}` | Admin edits partner data. |
 | `DELETE /api/partners/{id}` | Admin removes a partner. |
 | `PUT /api/partners/me` | Partner updates their own profile. |
-| `POST /api/partners/{id}/verify-payment` | Admin marks a payment as verified. |
+| ~~`POST /api/partners/{id}/payments/{paymentId}/verify`~~ | Implemented in `PaymentsController`. |
 | `GET /api/dashboard/stats` | Admin dashboard statistics (counts by status). |
-| `GET /api/partners/{id}/payments/proofs` | List payment proof files for a partner. |
-| `POST /api/partners/me/payment-proof` | Partner uploads payment proof. (May already exist — verify `uploadProof()` wiring.) |
+| ~~`POST /api/partners/me/payment-proof`~~ | Implemented in `PaymentsController` and wired to the partner profile UI. |
 
 ### 3.2 Missing Business Logic
 
@@ -111,8 +112,8 @@ Current: 34 tests. Missing coverage for:
 
 | Missing | Details |
 |---------|---------|
-| **GitHub Actions workflow** | No CI pipeline. Should run `dotnet test` and `ng build` on every push/PR. |
-| **Docker Compose for CI** | Tests need a PostgreSQL service. Should add a `docker-compose.ci.yml` for test runs. |
+| ~~**GitHub Actions workflow**~~ | `.github/workflows/ci.yml` runs PostgreSQL-backed backend tests, frontend tests, and a production frontend build. |
+| **Coverage reporting** | No coverage reports or thresholds are configured. |
 | **Test coverage reporting** | No coverage thresholds or reports generated. |
 | **Deployment pipeline** | No staging/production deployment. Could add Docker image build + push. |
 
@@ -170,12 +171,12 @@ Current: 34 tests. Missing coverage for:
 | P2 | Medium | Nice to have, improves quality of life |
 | P3 | Low | Polish, future enhancement |
 
-**Suggested P0 (start here):**
-- Frontend tests for all components
-- Lazy loading routes
-- Signals migration
-- Fix `@HostListener` → `host` object
-- Password reset UI
-- Admin dashboard
-- Update api-reference.md
-- CI pipeline (GitHub Actions)
+**Suggested next product work:**
+- Admin dashboard with operational counts (pending partner approvals, submitted payment proofs, upcoming events).
+- Public article listing and detail pages.
+- Update `api-reference.md` against current controllers and routes.
+
+**Suggested next reliability work:**
+- Complete existing backend coverage gaps listed above.
+- Add frontend route-level and accessibility checks.
+- Add an explicit migration-baselining procedure for databases created before `InitialCreate`.

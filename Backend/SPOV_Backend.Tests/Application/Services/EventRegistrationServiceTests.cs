@@ -22,7 +22,7 @@ public sealed class EventRegistrationServiceTests
         _registrationRepository = Substitute.For<IEventRegistrationRepository>();
         _eventRepository = Substitute.For<IEventRepository>();
         _partnerRepository = Substitute.For<IPartnerRepository>();
-        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>()).CreateMapper();
+        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance).CreateMapper();
         _sut = new EventRegistrationService(_registrationRepository, _eventRepository, _partnerRepository, _mapper);
     }
 

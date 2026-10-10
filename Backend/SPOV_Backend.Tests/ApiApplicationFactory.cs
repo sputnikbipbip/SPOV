@@ -12,9 +12,10 @@ namespace SPOV_Backend.Tests;
 /// Connection settings come from environment variables (POSTGRES_HOST, POSTGRES_PORT,
 /// POSTGRES_USER, POSTGRES_PASSWORD) so CI can point tests at a Postgres service.
 /// </summary>
-public sealed class ApiApplicationFactory : WebApplicationFactory<Program>
+public class ApiApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly string _databaseName = $"spov_test_{Guid.NewGuid():N}";
+    public string DevelopmentSeedPartnerPassword { get; set; } = "DemoPartner123!";
 
     protected override IHost CreateHost(IHostBuilder builder)
     {
@@ -28,7 +29,10 @@ public sealed class ApiApplicationFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = BuildConnectionString(_databaseName)
+                ["ConnectionStrings:DefaultConnection"] = BuildConnectionString(_databaseName),
+                ["AdminBootstrap:Email"] = "admin@spov.pt",
+                ["AdminBootstrap:Password"] = "Admin123!",
+                ["DevelopmentSeed:PartnerPassword"] = DevelopmentSeedPartnerPassword
             });
         });
     }

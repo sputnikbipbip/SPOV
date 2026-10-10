@@ -19,7 +19,7 @@ public sealed class DocumentServiceTests
     public DocumentServiceTests()
     {
         _documentRepository = Substitute.For<IDocumentRepository>();
-        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>()).CreateMapper();
+        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance).CreateMapper();
         _sut = new DocumentService(_documentRepository, _mapper);
     }
 

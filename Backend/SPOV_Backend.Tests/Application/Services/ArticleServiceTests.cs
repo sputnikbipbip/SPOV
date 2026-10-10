@@ -19,7 +19,7 @@ public sealed class ArticleServiceTests
     public ArticleServiceTests()
     {
         _articleRepository = Substitute.For<IArticleRepository>();
-        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>()).CreateMapper();
+        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance).CreateMapper();
         _sut = new ArticleService(_articleRepository, _mapper);
     }
 

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using SPOV.Domain.Entities;
 using SPOV.Domain.Enums;
 using SPOV.Infrastructure.Data;
@@ -15,46 +14,7 @@ public static class MigrationExtensions
         using var scope = app.ApplicationServices.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        await db.Database.EnsureCreatedAsync();
-
-        await using var conn = new NpgsqlConnection(db.Database.GetConnectionString());
-        await conn.OpenAsync();
-
-        // Ensure Location column exists
-        await using var checkCmd = new NpgsqlCommand("SELECT column_name FROM information_schema.columns WHERE table_name = 'Events' AND column_name = 'Location'", conn);
-        var locationExists = await checkCmd.ExecuteScalarAsync();
-        if (locationExists is null)
-        {
-            await using var alterCmd = new NpgsqlCommand("ALTER TABLE \"Events\" ADD COLUMN \"Location\" character varying(200)", conn);
-            await alterCmd.ExecuteNonQueryAsync();
-        }
-
-        // Ensure ImageData column exists
-        await using var imageCheckCmd = new NpgsqlCommand("SELECT column_name FROM information_schema.columns WHERE table_name = 'Events' AND column_name = 'ImageData'", conn);
-        var imageDataExists = await imageCheckCmd.ExecuteScalarAsync();
-        if (imageDataExists is null)
-        {
-            await using var alterImageCmd = new NpgsqlCommand("ALTER TABLE \"Events\" ADD COLUMN \"ImageData\" text", conn);
-            await alterImageCmd.ExecuteNonQueryAsync();
-        }
-
-        // Drop CeCredits if it exists
-        await using var creditsDropCmd = new NpgsqlCommand("ALTER TABLE \"Events\" DROP COLUMN IF EXISTS \"CeCredits\"", conn);
-        await creditsDropCmd.ExecuteNonQueryAsync();
-
-        // Ensure Payment columns exist
-        await using var paymentColumnsCmd = new NpgsqlCommand("""
-            ALTER TABLE "Payments"
-            ADD COLUMN IF NOT EXISTS "ProofStorageKey" character varying(500),
-            ADD COLUMN IF NOT EXISTS "ProofFileName" character varying(255),
-            ADD COLUMN IF NOT EXISTS "ProofContentType" character varying(100),
-            ADD COLUMN IF NOT EXISTS "ProofUploadedAt" timestamp with time zone,
-            ADD COLUMN IF NOT EXISTS "ReviewedAt" timestamp with time zone,
-            ADD COLUMN IF NOT EXISTS "ReviewedByUserId" character varying(450),
-            ADD COLUMN IF NOT EXISTS "ReviewNote" character varying(1000),
-            ADD COLUMN IF NOT EXISTS "Version" uuid NOT NULL DEFAULT gen_random_uuid()
-            """, conn);
-        await paymentColumnsCmd.ExecuteNonQueryAsync();
+        await db.Database.MigrateAsync();
     }
 
     public static async Task SeedDataAsync(this IApplicationBuilder app)
@@ -63,6 +23,7 @@ public static class MigrationExtensions
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
         if (!await db.Events.AnyAsync())
         {
@@ -112,12 +73,26 @@ public static class MigrationExtensions
         if (!await roleManager.RoleExistsAsync(Roles.Partner))
             await roleManager.CreateAsync(new IdentityRole(Roles.Partner));
 
-        if (await userManager.FindByEmailAsync("admin@spov.pt") is null)
+        var adminEmail = configuration["AdminBootstrap:Email"];
+        var adminPassword = configuration["AdminBootstrap:Password"];
+        if (string.IsNullOrWhiteSpace(adminEmail) != string.IsNullOrWhiteSpace(adminPassword))
+            throw new InvalidOperationException("Configure both AdminBootstrap:Email and AdminBootstrap:Password, or neither.");
+
+        if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword)
+            && await userManager.FindByEmailAsync(adminEmail) is null)
         {
-            var admin = new ApplicationUser { UserName = "admin@spov.pt", Email = "admin@spov.pt", FullName = "Administrador SPOV", EmailConfirmed = true };
-            var result = await userManager.CreateAsync(admin, "Admin123!");
+            var admin = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                FullName = configuration["AdminBootstrap:FullName"] ?? "Administrador SPOV",
+                EmailConfirmed = true
+            };
+            var result = await userManager.CreateAsync(admin, adminPassword);
             if (result.Succeeded)
                 await userManager.AddToRoleAsync(admin, Roles.Administrator);
+            else
+                throw new InvalidOperationException($"Unable to create bootstrap administrator: {string.Join(", ", result.Errors.Select(error => error.Code))}");
         }
     }
 }

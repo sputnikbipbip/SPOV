@@ -10,7 +10,7 @@ public sealed class MappingProfileTests
     [Fact]
     public void MappingProfile_Should_BeValid()
     {
-        var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>());
+        var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
 
         config.AssertConfigurationIsValid();
     }

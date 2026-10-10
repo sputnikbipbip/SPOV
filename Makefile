@@ -1,4 +1,4 @@
-.PHONY: help backend-restore backend-run backend-test frontend-install frontend-dev frontend-build docker-up docker-down
+.PHONY: help backend-restore backend-run backend-test backend-seed-dev frontend-install frontend-dev frontend-build docker-up docker-down
 
 help:
 	@echo "Available commands:"
@@ -6,6 +6,7 @@ help:
 	@echo "  make backend-secrets   Initialize and set .NET User Secrets"
 	@echo "  make backend-run       Run the ASP.NET Core API"
 	@echo "  make backend-test      Run backend tests"
+	@echo "  make backend-seed-dev  Add repeatable demo data to the Development database"
 	@echo "  make frontend-install  Install frontend dependencies"
 	@echo "  make frontend-dev      Start the Angular dev server"
 	@echo "  make frontend-build    Build the Angular app"
@@ -26,6 +27,9 @@ backend-run:
 
 backend-test:
 	POSTGRES_PASSWORD=$$(cat docker/secrets/postgres-password.txt 2>/dev/null || echo changeme) dotnet test Backend/SPOV_Backend.Tests/SPOV_Backend.Tests.csproj
+
+backend-seed-dev:
+	ASPNETCORE_ENVIRONMENT=Development dotnet run --no-launch-profile --project Backend/src/SPOV.WebApi/SPOV.WebApi.csproj -- --seed-dev=true
 
 frontend-install:
 	npm install --prefix Frontend

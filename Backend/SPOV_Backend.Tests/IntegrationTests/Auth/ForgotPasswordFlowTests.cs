@@ -4,6 +4,8 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.TestHost;
 using SPOV.Infrastructure.Identity;
 using Xunit;
 
@@ -31,6 +33,8 @@ public sealed class ForgotPasswordFlowTests
             totalAmount = 80m
         });
         registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        await ConfirmEmailAsync(factory, email);
 
         var forgotResponse = await client.PostAsJsonAsync("/api/auth/forgotPassword", new { email });
         forgotResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -78,6 +82,8 @@ public sealed class ForgotPasswordFlowTests
             totalAmount = 80m
         });
 
+        await ConfirmEmailAsync(factory, email);
+
         var resetResponse = await client.PostAsJsonAsync("/api/auth/resetPassword", new
         {
             email,
@@ -95,6 +101,16 @@ public sealed class ForgotPasswordFlowTests
         public int ExpiresIn { get; set; }
     }
 
+    private static async Task ConfirmEmailAsync(ApiApplicationFactory factory, string email)
+    {
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var user = await userManager.FindByEmailAsync(email);
+        user.Should().NotBeNull();
+        user!.EmailConfirmed = true;
+        (await userManager.UpdateAsync(user)).Succeeded.Should().BeTrue();
+    }
+
     public sealed class SpyEmailApiApplicationFactory : ApiApplicationFactory
     {
         private readonly IEmailSender<ApplicationUser>? _sender;
@@ -104,11 +120,15 @@ public sealed class ForgotPasswordFlowTests
             _sender = sender;
         }
 
-        protected override void ConfigureWebHostCore(IWebHostBuilder builder)
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            base.ConfigureWebHostCore(builder);
+            base.ConfigureWebHost(builder);
             if (_sender is not null)
-                builder.ConfigureServices(services => services.AddSingleton<IEmailSender<ApplicationUser>>(_sender));
+                builder.ConfigureTestServices(services =>
+                {
+                    services.RemoveAll<IEmailSender<ApplicationUser>>();
+                    services.AddSingleton(_sender);
+                });
         }
     }
 

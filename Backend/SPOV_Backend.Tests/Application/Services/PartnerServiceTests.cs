@@ -29,7 +29,7 @@ public sealed class PartnerServiceTests
         _partnerRepository = Substitute.For<IPartnerRepository>();
         _paymentRepository = Substitute.For<IPaymentRepository>();
         _identityService = Substitute.For<IIdentityService>();
-        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>()).CreateMapper();
+        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance).CreateMapper();
         _sut = new PartnerService(_partnerRepository, _paymentRepository, _identityService, _mapper);
     }
 

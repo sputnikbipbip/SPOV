@@ -20,7 +20,7 @@ public sealed class MembershipTierServiceTests
     public MembershipTierServiceTests()
     {
         _tierRepository = Substitute.For<IMembershipTierRepository>();
-        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>()).CreateMapper();
+        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>(), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance).CreateMapper();
         _sut = new MembershipTierService(_tierRepository, _mapper);
     }
 
